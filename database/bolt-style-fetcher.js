@@ -57,6 +57,26 @@ class BoltStyleFetcher {
       'sushi': {
         'chinese_cdn': { food_name: 'Sushi Roll (Chinese CDN)', calories: 200, protein_g: 8, fat_g: 1, carbs_g: 40, diabetic_rating: 'green', health_score: 85, country: 'Japan', source: 'Chinese CDN' },
         'wikipedia': { food_name: 'Sushi (Wikipedia)', calories: 180, protein_g: 7, fat_g: 0.8, carbs_g: 38, diabetic_rating: 'green', health_score: 88, country: 'Japan', source: 'Wikipedia' }
+      },
+      'wine': {
+        'usda': { food_name: 'Red Wine (USDA)', calories: 125, protein_g: 0.1, fat_g: 0, carbs_g: 4, diabetic_rating: 'yellow', health_score: 40, country: 'Global', source: 'USDA' },
+        'european_db': { food_name: 'Wine (European)', calories: 120, protein_g: 0.1, fat_g: 0, carbs_g: 3, diabetic_rating: 'yellow', health_score: 45, country: 'Europe', source: 'European DB' }
+      },
+      'beer': {
+        'usda': { food_name: 'Beer (USDA)', calories: 150, protein_g: 1.5, fat_g: 0, carbs_g: 13, diabetic_rating: 'red', health_score: 30, country: 'Global', source: 'USDA' },
+        'european_db': { food_name: 'Lager (European)', calories: 140, protein_g: 1.2, fat_g: 0, carbs_g: 12, diabetic_rating: 'red', health_score: 35, country: 'Europe', source: 'European DB' }
+      },
+      'apple': {
+        'usda': { food_name: 'Apple (USDA)', calories: 95, protein_g: 0.5, fat_g: 0.3, carbs_g: 25, diabetic_rating: 'green', health_score: 90, country: 'Global', source: 'USDA' },
+        'icmr': { food_name: 'Apple (ICMR)', calories: 90, protein_g: 0.4, fat_g: 0.2, carbs_g: 24, diabetic_rating: 'green', health_score: 92, country: 'India', source: 'ICMR' }
+      },
+      'banana': {
+        'usda': { food_name: 'Banana (USDA)', calories: 105, protein_g: 1.3, fat_g: 0.4, carbs_g: 27, diabetic_rating: 'yellow', health_score: 75, country: 'Global', source: 'USDA' },
+        'icmr': { food_name: 'Banana (ICMR)', calories: 100, protein_g: 1.2, fat_g: 0.3, carbs_g: 26, diabetic_rating: 'yellow', health_score: 78, country: 'India', source: 'ICMR' }
+      },
+      'idli': {
+        'icmr': { food_name: 'Idli (ICMR)', calories: 80, protein_g: 3, fat_g: 0.5, carbs_g: 16, diabetic_rating: 'green', health_score: 85, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Idli Sambar (Tara Dalal)', calories: 120, protein_g: 5, fat_g: 2, carbs_g: 20, diabetic_rating: 'green', health_score: 80, country: 'India', source: 'Tara Dalal' }
       }
     };
 
