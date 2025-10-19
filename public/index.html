@@ -512,6 +512,23 @@
                             <div><strong>⭐ Health:</strong> ${food.health_score}/100</div>
                             <div><strong>🌍 Country:</strong> ${food.country}</div>
                         </div>
+                        <div style="margin-top: 15px;">
+                            <div style="text-align: center; margin-bottom: 10px;"><strong>Health Speedometer</strong></div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 14px; margin-bottom: 5px;">🔥 Calories</div>
+                                    ${this.createSpeedometer(food.calories, 0, 500, 'calories')}
+                                </div>
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 14px; margin-bottom: 5px;">💪 Protein</div>
+                                    ${this.createSpeedometer(food.protein_g, 0, 50, 'protein')}
+                                </div>
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 14px; margin-bottom: 5px;">🥑 Fat</div>
+                                    ${this.createSpeedometer(food.fat_g, 0, 30, 'fat')}
+                                </div>
+                            </div>
+                        </div>
                     `;
                     resultsDiv.appendChild(foodDiv);
                 });
@@ -542,6 +559,44 @@
                     case 'red': return 'High Risk - Avoid';
                     default: return 'Unknown';
                 }
+            }
+
+            createSpeedometer(value, min, max, type) {
+                const percentage = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+                const angle = (percentage / 100) * 180; // 0 to 180 degrees
+                
+                // Color based on percentage (green to red)
+                let color;
+                if (percentage <= 33) color = '#28a745'; // Green
+                else if (percentage <= 66) color = '#ffc107'; // Yellow
+                else color = '#dc3545'; // Red
+                
+                return `
+                    <div style="position: relative; width: 80px; height: 50px; margin: 0 auto;">
+                        <svg width="80" height="50" viewBox="0 0 80 50">
+                            <!-- Background arc -->
+                            <path d="M 10 40 A 30 30 0 0 1 70 40" stroke="#e9ecef" stroke-width="8" fill="none"/>
+                            <!-- Value arc -->
+                            <path d="M 10 40 A 30 30 0 0 1 70 40" 
+                                  stroke="${color}" 
+                                  stroke-width="8" 
+                                  fill="none"
+                                  stroke-dasharray="${(angle/180) * 94.2} 94.2"
+                                  stroke-dashoffset="0"
+                                  style="transition: stroke-dasharray 0.5s ease;"/>
+                            <!-- Needle -->
+                            <line x1="40" y1="40" 
+                                  x2="${40 + 25 * Math.cos((angle - 90) * Math.PI / 180)}" 
+                                  y2="${40 - 25 * Math.sin((angle - 90) * Math.PI / 180)}" 
+                                  stroke="#333" stroke-width="2"/>
+                            <!-- Center dot -->
+                            <circle cx="40" cy="40" r="3" fill="#333"/>
+                        </svg>
+                        <div style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: bold; color: ${color};">
+                            ${value.toFixed(1)}
+                        </div>
+                    </div>
+                `;
             }
 
             checkAuth() {
