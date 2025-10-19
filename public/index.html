@@ -132,6 +132,31 @@
         .form-group {
             position: relative;
         }
+        
+        /* Smart Search Status Styles */
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
 <body>
@@ -194,7 +219,11 @@
                     <!-- Suggestions will be populated dynamically -->
                 </div>
             </div>
-            <button id="search-btn">Search</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="search-btn">Search</button>
+                <button id="smart-search-btn" style="background: #28a745;">Smart Search</button>
+            </div>
+            <div id="smart-search-status" class="hidden" style="padding: 10px; border-radius: 5px; margin-bottom: 10px;"></div>
             <div id="search-results"></div>
             <button id="logout-btn" style="background: #dc3545; margin-top: 20px;">Logout</button>
         </div>
@@ -224,6 +253,7 @@
                 
                 // Dashboard
                 document.getElementById('search-btn').addEventListener('click', () => this.handleSearch());
+                document.getElementById('smart-search-btn').addEventListener('click', () => this.handleSmartSearch());
                 document.getElementById('logout-btn').addEventListener('click', () => this.logout());
                 
                 // Search input with suggestions
@@ -388,6 +418,60 @@
                 } catch (error) {
                     console.error('Search error:', error);
                 }
+            }
+
+            async handleSmartSearch() {
+                const query = document.getElementById('search-input').value.trim();
+                if (!query) return;
+
+                this.hideSuggestions();
+                this.showSmartSearchStatus('🔍 Smart searching for ' + query + '...', 'info');
+
+                try {
+                    const response = await fetch(`${this.apiUrl}/smart-search`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            foodName: query, 
+                            cuisineType: this.detectCuisineType(query) 
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showSmartSearchStatus('✅ ' + data.message, 'success');
+                        // Search for the newly added food
+                        setTimeout(() => this.handleSearch(), 1000);
+                    } else {
+                        this.showSmartSearchStatus('⚠️ ' + data.message, 'warning');
+                    }
+                } catch (error) {
+                    console.error('Smart search error:', error);
+                    this.showSmartSearchStatus('❌ Smart search failed', 'error');
+                }
+            }
+
+            detectCuisineType(foodName) {
+                const lowerName = foodName.toLowerCase();
+                if (lowerName.includes('nachos') || lowerName.includes('tacos') || lowerName.includes('burrito')) return 'mexican';
+                if (lowerName.includes('pizza') || lowerName.includes('pasta') || lowerName.includes('spaghetti')) return 'italian';
+                if (lowerName.includes('sushi') || lowerName.includes('ramen') || lowerName.includes('tempura')) return 'japanese';
+                if (lowerName.includes('curry') || lowerName.includes('biryani') || lowerName.includes('tikka')) return 'indian';
+                if (lowerName.includes('pad thai') || lowerName.includes('tom yum')) return 'thai';
+                if (lowerName.includes('chow mein') || lowerName.includes('fried rice')) return 'chinese';
+                return 'mexican'; // Default
+            }
+
+            showSmartSearchStatus(message, type) {
+                const statusDiv = document.getElementById('smart-search-status');
+                statusDiv.textContent = message;
+                statusDiv.className = type;
+                statusDiv.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    statusDiv.classList.add('hidden');
+                }, 5000);
             }
 
             displaySearchResults(foods) {

@@ -313,6 +313,43 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
 });
 
 // ============================================
+// SMART FOOD FETCHER
+// ============================================
+const SmartFoodFetcher = require('./database/smart-food-fetcher');
+
+// Smart food search and add endpoint
+app.post('/api/smart-search', async (req, res) => {
+  try {
+    const { foodName, cuisineType = 'mexican' } = req.body;
+    
+    if (!foodName) {
+      return res.status(400).json({ error: 'Food name is required' });
+    }
+
+    console.log(`🔍 Smart search requested: ${foodName} (${cuisineType})`);
+    
+    const fetcher = new SmartFoodFetcher();
+    const result = await fetcher.searchAndAddFood(foodName, cuisineType);
+    
+    if (result) {
+      res.json({
+        success: true,
+        message: `Food "${foodName}" added to database`,
+        food: result
+      });
+    } else {
+      res.json({
+        success: false,
+        message: `Could not find or add "${foodName}"`
+      });
+    }
+  } catch (error) {
+    console.error('Smart search error:', error);
+    res.status(500).json({ error: 'Smart search failed' });
+  }
+});
+
+// ============================================
 // HEALTH CHECK
 // ============================================
 app.get('/api/health', async (req, res) => {
