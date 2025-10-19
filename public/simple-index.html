@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOMA FOODS - Simple Version</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            color: white;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .error {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        .success {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        .dashboard {
+            display: none;
+        }
+        .search-box {
+            margin-bottom: 20px;
+        }
+        .food-result {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Signup Form -->
+    <div id="signup-section" class="container">
+        <h1>🍎 HOMA FOODS - Sign Up</h1>
+        <form id="signup-form">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Name (optional):</label>
+                <input type="text" id="name" name="name">
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone (optional):</label>
+                <input type="text" id="phone" name="phone">
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        <div id="signup-error" class="error"></div>
+        <div id="signup-success" class="success"></div>
+        <p style="color: white; text-align: center; margin-top: 20px;">
+            Already have an account? <a href="#" id="show-login" style="color: #3b82f6;">Login here</a>
+        </p>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login-section" class="container" style="display: none;">
+        <h1>🍎 HOMA FOODS - Login</h1>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div id="login-error" class="error"></div>
+        <div id="login-success" class="success"></div>
+        <p style="color: white; text-align: center; margin-top: 20px;">
+            Don't have an account? <a href="#" id="show-signup" style="color: #3b82f6;">Sign up here</a>
+        </p>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="container dashboard">
+        <h1>🍎 HOMA FOODS - Dashboard</h1>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search for food (e.g., biryani, idli, chicken)" style="margin-bottom: 10px;">
+            <button id="search-btn">Search</button>
+        </div>
+        <div id="search-results"></div>
+        <button id="logout-btn" style="background: #ef4444; margin-top: 20px;">Logout</button>
+    </div>
+
+    <script>
+        // Simple HOMA FOODS App - NO LAYERS, NO COMPLEXITY
+        class SimpleHomaFoods {
+            constructor() {
+                this.apiUrl = window.location.origin + '/api';
+                this.token = localStorage.getItem('homaFoodsToken');
+                
+                console.log('🚀 Simple HOMA FOODS App starting...');
+                console.log('🌐 API URL:', this.apiUrl);
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.checkAuth();
+            }
+
+            setupEventListeners() {
+                // Signup form
+                document.getElementById('signup-form').addEventListener('submit', (e) => this.handleSignup(e));
+                
+                // Login form
+                document.getElementById('login-form').addEventListener('submit', (e) => this.handleLogin(e));
+                
+                // Navigation
+                document.getElementById('show-login').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showLogin();
+                });
+                
+                document.getElementById('show-signup').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showSignup();
+                });
+                
+                // Dashboard
+                document.getElementById('search-btn').addEventListener('click', () => this.handleSearch());
+                document.getElementById('logout-btn').addEventListener('click', () => this.logout());
+                
+                console.log('✅ Event listeners setup complete');
+            }
+
+            showSignup() {
+                document.getElementById('signup-section').style.display = 'block';
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'none';
+            }
+
+            showLogin() {
+                document.getElementById('signup-section').style.display = 'none';
+                document.getElementById('login-section').style.display = 'block';
+                document.getElementById('dashboard').style.display = 'none';
+            }
+
+            showDashboard() {
+                document.getElementById('signup-section').style.display = 'none';
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+            }
+
+            async handleSignup(e) {
+                e.preventDefault();
+                console.log('🔍 Handle signup called');
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                
+                console.log('📝 Signup data:', { email, password, confirmPassword, name, phone });
+                
+                // Clear previous messages
+                this.hideMessages();
+                
+                // Validation
+                if (!email) {
+                    this.showError('signup-error', 'Please enter your email address!');
+                    return;
+                }
+                
+                if (!password) {
+                    this.showError('signup-error', 'Please enter a password!');
+                    return;
+                }
+                
+                if (password.length < 3) {
+                    this.showError('signup-error', 'Password must be at least 3 characters!');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    this.showError('signup-error', 'Passwords do not match!');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${this.apiUrl}/auth/signup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password, confirmPassword, name, phone })
+                    });
+                    
+                    const data = await response.json();
+                    console.log('📝 Signup response:', data);
+                    
+                    if (response.ok) {
+                        this.token = data.token;
+                        localStorage.setItem('homaFoodsToken', this.token);
+                        this.showSuccess('signup-success', 'Sign up successful! Redirecting to dashboard...');
+                        setTimeout(() => this.showDashboard(), 1000);
+                    } else {
+                        this.showError('signup-error', data.error || 'Sign up failed!');
+                    }
+                } catch (error) {
+                    console.error('❌ Signup error:', error);
+                    this.showError('signup-error', 'Network error during signup.');
+                }
+            }
+
+            async handleLogin(e) {
+                e.preventDefault();
+                console.log('🔍 Handle login called');
+                
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                console.log('📝 Login data:', { email, password });
+                
+                // Clear previous messages
+                this.hideMessages();
+                
+                // Validation
+                if (!email) {
+                    this.showError('login-error', 'Please enter your email address!');
+                    return;
+                }
+                
+                if (!password) {
+                    this.showError('login-error', 'Please enter a password!');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${this.apiUrl}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    const data = await response.json();
+                    console.log('📝 Login response:', data);
+                    
+                    if (response.ok) {
+                        this.token = data.token;
+                        localStorage.setItem('homaFoodsToken', this.token);
+                        this.showSuccess('login-success', 'Login successful! Redirecting to dashboard...');
+                        setTimeout(() => this.showDashboard(), 1000);
+                    } else {
+                        this.showError('login-error', data.error || 'Login failed!');
+                    }
+                } catch (error) {
+                    console.error('❌ Login error:', error);
+                    this.showError('login-error', 'Network error during login.');
+                }
+            }
+
+            async handleSearch() {
+                const query = document.getElementById('search-input').value.trim();
+                if (!query) return;
+
+                console.log('🔍 Searching for:', query);
+
+                try {
+                    const response = await fetch(`${this.apiUrl}/data?search=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        this.displaySearchResults(data.foods);
+                    } else {
+                        console.error('Search failed:', data);
+                    }
+                } catch (error) {
+                    console.error('❌ Search error:', error);
+                }
+            }
+
+            displaySearchResults(foods) {
+                const resultsDiv = document.getElementById('search-results');
+                resultsDiv.innerHTML = '';
+
+                if (foods.length === 0) {
+                    resultsDiv.innerHTML = '<div class="food-result">No foods found. Try a different search term.</div>';
+                    return;
+                }
+
+                foods.forEach(food => {
+                    const foodDiv = document.createElement('div');
+                    foodDiv.className = 'food-result';
+                    foodDiv.innerHTML = `
+                        <h4>${food.food_name}</h4>
+                        <p>Calories: ${food.calories} | Protein: ${food.protein_g}g | Fat: ${food.fat_g}g</p>
+                        <p>Health Score: ${food.health_score}/100 | Rating: ${food.diabetic_rating}</p>
+                    `;
+                    resultsDiv.appendChild(foodDiv);
+                });
+            }
+
+            checkAuth() {
+                if (this.token) {
+                    this.showDashboard();
+                } else {
+                    this.showSignup();
+                }
+            }
+
+            logout() {
+                this.token = null;
+                localStorage.removeItem('homaFoodsToken');
+                this.showSignup();
+            }
+
+            showError(elementId, message) {
+                const errorDiv = document.getElementById(elementId);
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+
+            showSuccess(elementId, message) {
+                const successDiv = document.getElementById(elementId);
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+            }
+
+            hideMessages() {
+                document.getElementById('signup-error').style.display = 'none';
+                document.getElementById('signup-success').style.display = 'none';
+                document.getElementById('login-error').style.display = 'none';
+                document.getElementById('login-success').style.display = 'none';
+            }
+        }
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 DOM loaded, initializing Simple HOMA FOODS App...');
+            new SimpleHomaFoods();
+        });
+    </script>
+</body>
+</html>
