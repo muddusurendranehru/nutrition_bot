@@ -492,14 +492,56 @@
 
                 foods.forEach(food => {
                     const foodDiv = document.createElement('div');
-                    foodDiv.style.cssText = 'background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px;';
+                    foodDiv.style.cssText = 'background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid ' + this.getHealthColor(food.diabetic_rating) + ';';
+                    
+                    const healthIcon = this.getHealthIcon(food.diabetic_rating);
+                    const healthText = this.getHealthText(food.diabetic_rating);
+                    
                     foodDiv.innerHTML = `
-                        <h3>${food.food_name}</h3>
-                        <p>Calories: ${food.calories} | Protein: ${food.protein_g}g | Fat: ${food.fat_g}g</p>
-                        <p>Health Score: ${food.health_score}/100</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="margin: 0;">${food.food_name}</h3>
+                            <div style="background: ${this.getHealthColor(food.diabetic_rating)}; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
+                                ${healthIcon} ${healthText}
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                            <div><strong>🔥 Calories:</strong> ${food.calories}</div>
+                            <div><strong>💪 Protein:</strong> ${food.protein_g}g</div>
+                            <div><strong>🥑 Fat:</strong> ${food.fat_g}g</div>
+                            <div><strong>🍞 Carbs:</strong> ${food.carbs_g}g</div>
+                            <div><strong>⭐ Health:</strong> ${food.health_score}/100</div>
+                            <div><strong>🌍 Country:</strong> ${food.country}</div>
+                        </div>
                     `;
                     resultsDiv.appendChild(foodDiv);
                 });
+            }
+
+            getHealthColor(rating) {
+                switch(rating) {
+                    case 'green': return '#28a745'; // Green for healthy
+                    case 'yellow': return '#ffc107'; // Yellow for moderate
+                    case 'red': return '#dc3545'; // Red for unhealthy
+                    default: return '#6c757d'; // Gray for unknown
+                }
+            }
+
+            getHealthIcon(rating) {
+                switch(rating) {
+                    case 'green': return '✅';
+                    case 'yellow': return '⚠️';
+                    case 'red': return '❌';
+                    default: return '❓';
+                }
+            }
+
+            getHealthText(rating) {
+                switch(rating) {
+                    case 'green': return 'Safe for Diabetics';
+                    case 'yellow': return 'Moderate - Small Portions';
+                    case 'red': return 'High Risk - Avoid';
+                    default: return 'Unknown';
+                }
             }
 
             checkAuth() {
