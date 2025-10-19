@@ -118,7 +118,6 @@ class SmartFoodFetcher {
           food_name, food_name_lower, regional_names, alternate_names, calories, protein_g, fat_g, carbs_g, fiber_g, sugar_g, sodium_mg,
           diabetic_rating, health_score, country, continent, cuisine_type, category, data_source, verified, verification_sources
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
-        ON CONFLICT (food_name) DO NOTHING
         RETURNING id`,
         [
           foodData.food_name,
@@ -148,8 +147,8 @@ class SmartFoodFetcher {
         console.log(`✅ Added: ${foodData.food_name} (${foodData.calories} cal)`);
         return result.rows[0].id;
       } else {
-        console.log(`⚠️ Already exists: ${foodData.food_name}`);
-        return null;
+        console.log(`⚠️ Insert completed but no ID returned for: ${foodData.food_name}`);
+        return 'inserted';
       }
     } catch (error) {
       console.error(`❌ Error inserting ${foodData.food_name}:`, error.message);
@@ -176,10 +175,23 @@ class SmartFoodFetcher {
       const externalFood = await this.fetchFoodFromExternalSource(foodName, cuisineType);
       
       if (externalFood) {
-        const foodId = await this.insertFoodToDatabase(externalFood);
-        if (foodId) {
-          console.log(`🎉 Successfully added new food: ${externalFood.food_name}`);
-          return externalFood;
+        try {
+          const foodId = await this.insertFoodToDatabase(externalFood);
+          if (foodId) {
+            console.log(`🎉 Successfully added new food: ${externalFood.food_name}`);
+            return externalFood;
+          }
+        } catch (insertError) {
+          console.log(`⚠️ Food might already exist, checking again...`);
+          // Check if it was added by another process
+          const recheckFood = await pool.query(
+            'SELECT * FROM food_nutrition WHERE food_name ILIKE $1',
+            [`%${foodName}%`]
+          );
+          if (recheckFood.rows.length > 0) {
+            console.log(`✅ Food found after insert attempt: ${recheckFood.rows[0].food_name}`);
+            return recheckFood.rows[0];
+          }
         }
       }
 

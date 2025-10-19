@@ -422,7 +422,10 @@
 
             async handleSmartSearch() {
                 const query = document.getElementById('search-input').value.trim();
-                if (!query) return;
+                if (!query) {
+                    this.showSmartSearchStatus('⚠️ Please enter a food name to search', 'warning');
+                    return;
+                }
 
                 this.hideSuggestions();
                 this.showSmartSearchStatus('🔍 Smart searching for ' + query + '...', 'info');
@@ -437,6 +440,10 @@
                         })
                     });
                     
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
                     const data = await response.json();
                     
                     if (data.success) {
@@ -448,7 +455,7 @@
                     }
                 } catch (error) {
                     console.error('Smart search error:', error);
-                    this.showSmartSearchStatus('❌ Smart search failed', 'error');
+                    this.showSmartSearchStatus('❌ Smart search failed: ' + error.message, 'error');
                 }
             }
 
