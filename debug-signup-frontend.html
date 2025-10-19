@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOMA FOODS - Debug Signup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+        }
+        .success {
+            background: rgba(0, 255, 0, 0.2);
+        }
+        .debug {
+            background: rgba(0, 0, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>HOMA FOODS - Debug Signup</h1>
+    <p>Testing signup with console logging</p>
+    
+    <form id="signup-form">
+        <div class="form-group">
+            <label for="signup-email">Email:</label>
+            <input type="email" id="signup-email" placeholder="Enter your email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="signup-password">Password:</label>
+            <input type="password" id="signup-password" placeholder="Enter your password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="signup-confirm">Confirm Password:</label>
+            <input type="password" id="signup-confirm" placeholder="Confirm your password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="signup-name">Name (Optional):</label>
+            <input type="text" id="signup-name" placeholder="Enter your name">
+        </div>
+        
+        <div class="form-group">
+            <label for="signup-phone">Phone (Optional):</label>
+            <input type="text" id="signup-phone" placeholder="Enter your phone">
+        </div>
+        
+        <button type="submit">Sign Up</button>
+    </form>
+    
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        console.log('🔍 Debug script loaded');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 DOM loaded');
+            
+            const signupForm = document.getElementById('signup-form');
+            console.log('🔍 Signup form found:', signupForm);
+            
+            if (signupForm) {
+                signupForm.addEventListener('submit', async function(e) {
+                    console.log('🔍 Form submitted');
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('signup-email').value;
+                    const password = document.getElementById('signup-password').value;
+                    const confirmPassword = document.getElementById('signup-confirm').value;
+                    const name = document.getElementById('signup-name').value;
+                    const phone = document.getElementById('signup-phone').value;
+                    
+                    console.log('🔍 Form data:', { email, password, confirmPassword, name, phone });
+                    
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = 'Signing up...';
+                    resultDiv.className = 'result debug';
+                    
+                    try {
+                        console.log('🔍 Making API call to:', 'http://localhost:3031/api/auth/signup');
+                        
+                        const response = await fetch('http://localhost:3031/api/auth/signup', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                email,
+                                password,
+                                confirmPassword,
+                                name,
+                                phone
+                            })
+                        });
+                        
+                        console.log('🔍 Response status:', response.status);
+                        console.log('🔍 Response ok:', response.ok);
+                        
+                        const data = await response.json();
+                        console.log('🔍 Response data:', data);
+                        
+                        if (response.ok) {
+                            resultDiv.innerHTML = `
+                                <h3>✅ Sign Up Successful!</h3>
+                                <p><strong>User ID:</strong> ${data.user.id}</p>
+                                <p><strong>Email:</strong> ${data.user.email}</p>
+                                <p><strong>Name:</strong> ${data.user.name || 'Not provided'}</p>
+                                <p><strong>Phone:</strong> ${data.user.phone || 'Not provided'}</p>
+                                <p><strong>Token:</strong> ${data.token ? 'Generated' : 'Missing'}</p>
+                            `;
+                            resultDiv.className = 'result success';
+                        } else {
+                            resultDiv.innerHTML = `
+                                <h3>❌ Sign Up Failed!</h3>
+                                <p><strong>Error:</strong> ${data.error || 'Unknown error'}</p>
+                                <p><strong>Status:</strong> ${response.status}</p>
+                            `;
+                            resultDiv.className = 'result error';
+                        }
+                    } catch (error) {
+                        console.error('🔍 Network error:', error);
+                        resultDiv.innerHTML = `
+                            <h3>❌ Network Error!</h3>
+                            <p><strong>Error:</strong> ${error.message}</p>
+                            <p>Make sure the server is running on port 3031</p>
+                        `;
+                        resultDiv.className = 'result error';
+                    }
+                });
+            } else {
+                console.error('🔍 Signup form not found!');
+            }
+        });
+    </script>
+</body>
+</html>

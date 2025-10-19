@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Test - HOMA FOODS</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .test-box { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 HOMA FOODS - Network Test</h1>
+    
+    <div class="test-box">
+        <h3>Server Status Tests</h3>
+        <button onclick="testHealth()">Test Health Check</button>
+        <button onclick="testSignup()">Test Signup API</button>
+        <button onclick="testFrontend()">Test Frontend Load</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const apiUrl = 'http://localhost:3031/api';
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-box ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+        }
+        
+        async function testHealth() {
+            try {
+                addResult('Testing health check...', 'info');
+                const response = await fetch(`${apiUrl}/health`);
+                const data = await response.json();
+                addResult(`✅ Health Check: ${response.status} - ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                addResult(`❌ Health Check Failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSignup() {
+            try {
+                addResult('Testing signup API...', 'info');
+                const testData = {
+                    email: `test${Date.now()}@example.com`,
+                    password: '123',
+                    confirmPassword: '123',
+                    name: 'Test User',
+                    phone: '+91 9963721999'
+                };
+                
+                const response = await fetch(`${apiUrl}/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    addResult(`✅ Signup Success: ${response.status} - User created`, 'success');
+                } else {
+                    addResult(`❌ Signup Failed: ${response.status} - ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Signup Network Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testFrontend() {
+            try {
+                addResult('Testing frontend load...', 'info');
+                const response = await fetch('http://localhost:3031/');
+                if (response.ok) {
+                    addResult(`✅ Frontend Load: ${response.status} - ${response.headers.get('content-length')} bytes`, 'success');
+                } else {
+                    addResult(`❌ Frontend Load Failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Frontend Load Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // Auto-run health check on load
+        window.onload = function() {
+            addResult('🚀 Network Test Page Loaded', 'info');
+            testHealth();
+        };
+    </script>
+</body>
+</html>

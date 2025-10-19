@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOMA FOODS - Dr. Nehru's Nutrition Database</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="glass shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-white">🍎 HOMA FOODS</h1>
+                <div id="nav-buttons">
+                    <button id="signup-btn" class="bg-white/20 text-white px-6 py-3 rounded-full hover:bg-white/30 transition-all mx-2">
+                        Sign Up
+                    </button>
+                    <button id="login-btn" class="bg-white/30 text-white px-6 py-3 rounded-full hover:bg-white/40 transition-all mx-2">
+                        Login
+                    </button>
+                    <button id="logout-btn" class="bg-red-500/80 text-white px-6 py-3 rounded-full hover:bg-red-500 transition-all mx-2 hidden">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Welcome Page -->
+    <div id="welcome" class="container mx-auto px-6 py-12 text-center">
+        <div class="glass rounded-2xl p-12 max-w-2xl mx-auto">
+            <h2 class="text-5xl font-bold text-white mb-6">Welcome to HOMA FOODS</h2>
+            <p class="text-xl text-white/90 mb-8">3 Lakh Foods | 7 Continents | 165 Countries</p>
+            <p class="text-lg text-white/80 mb-8">Dr. Nehru's HOMA-IR Nutrition System</p>
+            <div class="flex justify-center space-x-4">
+                <button id="welcome-signup" class="bg-blue-500 text-white px-8 py-4 rounded-lg hover:bg-blue-600 transition-all text-lg">
+                    Get Started - Sign Up
+                </button>
+                <button id="welcome-login" class="bg-green-500 text-white px-8 py-4 rounded-lg hover:bg-green-600 transition-all text-lg">
+                    Already a Member - Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard (Hidden by default) -->
+    <div id="dashboard" class="container mx-auto px-6 py-12 hidden">
+        <div class="glass rounded-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold text-white mb-6">Search Foods</h2>
+            <div class="flex space-x-4">
+                <input type="text" id="search-input" placeholder="Try: chicken, biryani, idli, sambar..."
+                    class="flex-1 px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <button id="search-btn" class="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-600 transition-all">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div id="search-results" class="space-y-4"></div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signup-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold text-white mb-6">Sign Up</h3>
+            <form id="signup-form">
+                <div class="mb-4">
+                    <input type="email" id="signup-email" placeholder="Email" required autocomplete="email"
+                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        style="color: white !important;">
+                </div>
+                <div class="mb-4">
+                    <input type="password" id="signup-password" placeholder="Password (min 3 chars)" required autocomplete="new-password"
+                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        style="color: white !important;">
+                </div>
+                <div class="mb-4">
+                    <input type="password" id="signup-confirm" placeholder="Confirm Password" required autocomplete="new-password"
+                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        style="color: white !important;">
+                </div>
+                <div class="mb-4">
+                    <input type="text" id="signup-name" placeholder="Name (optional)" autocomplete="name"
+                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        style="color: white !important;">
+                </div>
+                <div class="mb-6">
+                    <input type="text" id="signup-phone" placeholder="Phone (optional)" autocomplete="tel"
+                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        style="color: white !important;">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-all flex-1">
+                        Sign Up
+                    </button>
+                    <button type="button" id="close-signup" class="bg-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold text-white mb-6">Login</h3>
+            <form id="login-form">
+                <div class="mb-4">
+                    <input type="email" id="login-email" placeholder="Email" required autocomplete="email"
+                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        style="color: white !important;">
+                </div>
+                <div class="mb-6">
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password"
+                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        style="color: white !important;">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-all flex-1">
+                        Login
+                    </button>
+                    <button type="button" id="close-login" class="bg-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="text-white text-center">
+            <i class="fas fa-spinner fa-spin text-6xl mb-4"></i>
+            <p class="text-xl">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 right-8 glass rounded-lg p-4 text-white shadow-lg transform translate-y-32 transition-transform duration-300 z-50">
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3031/api';
+        
+        class HomaFoodsApp {
+            constructor() {
+                this.token = localStorage.getItem('homa_token');
+                this.user = null;
+                this.init();
+            }
+
+            init() {
+                console.log('🚀 HOMA FOODS App starting...');
+                this.setupEventListeners();
+                if (this.token) {
+                    this.checkAuth();
+                }
+            }
+
+            setupEventListeners() {
+                // Header buttons
+                document.getElementById('signup-btn').addEventListener('click', () => this.showSignup());
+                document.getElementById('login-btn').addEventListener('click', () => this.showLogin());
+                document.getElementById('logout-btn').addEventListener('click', () => this.handleLogout());
+                
+                // Welcome buttons
+                document.getElementById('welcome-signup').addEventListener('click', () => this.showSignup());
+                document.getElementById('welcome-login').addEventListener('click', () => this.showLogin());
+                
+                // Modal close buttons
+                document.getElementById('close-signup').addEventListener('click', () => this.hideSignup());
+                document.getElementById('close-login').addEventListener('click', () => this.hideLogin());
+                
+                // Forms
+                document.getElementById('signup-form').addEventListener('submit', (e) => this.handleSignup(e));
+                document.getElementById('login-form').addEventListener('submit', (e) => this.handleLogin(e));
+                
+                // Search
+                document.getElementById('search-btn').addEventListener('click', () => this.handleSearch());
+                document.getElementById('search-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.handleSearch();
+                });
+            }
+
+            showSignup() {
+                const modal = document.getElementById('signup-modal');
+                modal.classList.remove('hidden');
+                // Focus on first input after modal opens
+                setTimeout(() => {
+                    document.getElementById('signup-email').focus();
+                }, 100);
+            }
+
+            hideSignup() {
+                document.getElementById('signup-modal').classList.add('hidden');
+                document.getElementById('signup-form').reset();
+            }
+
+            showLogin() {
+                const modal = document.getElementById('login-modal');
+                modal.classList.remove('hidden');
+                // Focus on first input after modal opens
+                setTimeout(() => {
+                    document.getElementById('login-email').focus();
+                }, 100);
+            }
+
+            hideLogin() {
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('login-form').reset();
+            }
+
+            showDashboard() {
+                document.getElementById('welcome').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('signup-btn').classList.add('hidden');
+                document.getElementById('login-btn').classList.add('hidden');
+                document.getElementById('logout-btn').classList.remove('hidden');
+            }
+
+            showWelcome() {
+                document.getElementById('welcome').classList.remove('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('signup-btn').classList.remove('hidden');
+                document.getElementById('login-btn').classList.remove('hidden');
+                document.getElementById('logout-btn').classList.add('hidden');
+            }
+
+            showLoading(show) {
+                document.getElementById('loading').classList.toggle('hidden', !show);
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toast-message');
+                toastMessage.textContent = message;
+                toast.classList.remove('translate-y-32');
+                setTimeout(() => toast.classList.add('translate-y-32'), 3000);
+            }
+
+            async handleSignup(e) {
+                e.preventDefault();
+                console.log('📝 Signup started...');
+                
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const confirmPassword = document.getElementById('signup-confirm').value;
+                const name = document.getElementById('signup-name').value || '';
+                const phone = document.getElementById('signup-phone').value || '';
+
+                if (password !== confirmPassword) {
+                    this.showToast('Passwords do not match!', 'error');
+                    return;
+                }
+
+                if (password.length < 3) {
+                    this.showToast('Password must be at least 3 characters!', 'error');
+                    return;
+                }
+
+                this.showLoading(true);
+
+                try {
+                    console.log('🔄 Sending signup request to:', `${API_URL}/auth/signup`);
+                    const response = await fetch(`${API_URL}/auth/signup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password, confirmPassword, name, phone })
+                    });
+
+                    const data = await response.json();
+                    console.log('📨 Signup response:', data);
+
+                    if (response.ok) {
+                        this.token = data.token;
+                        this.user = data.user;
+                        localStorage.setItem('homa_token', this.token);
+                        this.showToast('Sign up successful! Welcome!');
+                        this.hideSignup();
+                        this.showDashboard();
+                    } else {
+                        this.showToast(data.error || 'Sign up failed!', 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ Signup error:', error);
+                    this.showToast('Network error! Please check your connection.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async handleLogin(e) {
+                e.preventDefault();
+                console.log('🔐 Login started...');
+
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                this.showLoading(true);
+
+                try {
+                    const response = await fetch(`${API_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.token = data.token;
+                        this.user = data.user;
+                        localStorage.setItem('homa_token', this.token);
+                        this.showToast('Login successful! Welcome back!');
+                        this.hideLogin();
+                        this.showDashboard();
+                    } else {
+                        this.showToast(data.error || 'Login failed!', 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ Login error:', error);
+                    this.showToast('Network error! Please check your connection.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async handleSearch() {
+                const searchTerm = document.getElementById('search-input').value.trim();
+                if (!searchTerm) {
+                    this.showToast('Please enter a food name!', 'error');
+                    return;
+                }
+
+                this.showLoading(true);
+
+                try {
+                    const response = await fetch(`${API_URL}/data?search=${encodeURIComponent(searchTerm)}`);
+                    const data = await response.json();
+
+                    if (response.ok && data.foods) {
+                        this.displaySearchResults(data.foods);
+                        if (data.foods.length === 0) {
+                            this.showToast('No foods found. Try a different search!', 'info');
+                        }
+                    } else {
+                        this.showToast('Search failed!', 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ Search error:', error);
+                    this.showToast('Network error! Please check your connection.', 'error');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            displaySearchResults(foods) {
+                const resultsDiv = document.getElementById('search-results');
+                if (foods.length === 0) {
+                    resultsDiv.innerHTML = '<p class="text-white text-center">No results found.</p>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = foods.map(food => `
+                    <div class="glass rounded-xl p-6">
+                        <h3 class="text-2xl font-bold text-white mb-4">${food.food_name}</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-white">
+                            <div>
+                                <p class="text-white/70">Calories</p>
+                                <p class="text-2xl font-bold">${food.calories}</p>
+                            </div>
+                            <div>
+                                <p class="text-white/70">Protein</p>
+                                <p class="text-2xl font-bold">${food.protein_g}g</p>
+                            </div>
+                            <div>
+                                <p class="text-white/70">Fat</p>
+                                <p class="text-2xl font-bold">${food.fat_g}g</p>
+                            </div>
+                            <div>
+                                <p class="text-white/70">Health Score</p>
+                                <p class="text-2xl font-bold ${food.diabetic_rating === 'green' ? 'text-green-400' : food.diabetic_rating === 'yellow' ? 'text-yellow-400' : 'text-red-400'}">${food.health_score}/100</p>
+                            </div>
+                        </div>
+                        <p class="text-white/70 mt-4">${food.country} • ${food.cuisine_type}</p>
+                    </div>
+                `).join('');
+            }
+
+            async checkAuth() {
+                try {
+                    const response = await fetch(`${API_URL}/user/profile`, {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.user = data.user;
+                        this.showDashboard();
+                    } else {
+                        localStorage.removeItem('homa_token');
+                        this.token = null;
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                }
+            }
+
+            handleLogout() {
+                localStorage.removeItem('homa_token');
+                this.token = null;
+                this.user = null;
+                this.showWelcome();
+                this.showToast('Logged out successfully!');
+            }
+        }
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Starting HOMA FOODS...');
+            new HomaFoodsApp();
+        });
+    </script>
+</body>
+</html>
