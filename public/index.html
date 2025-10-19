@@ -87,6 +87,51 @@
             border-radius: 5px;
             margin-top: 10px;
         }
+        
+        /* Search Suggestions Styles */
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .suggestion-details {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .form-group {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -143,7 +188,11 @@
         <div id="dashboard" class="hidden">
             <h2>Search Foods</h2>
             <div class="form-group">
-                <input type="text" id="search-input" placeholder="Search for food...">
+                <input type="text" id="search-input" placeholder="Search for food (e.g., chicken, idli, pizza)...">
+                <!-- Search Suggestions Dropdown -->
+                <div id="search-suggestions" class="suggestions-dropdown hidden">
+                    <!-- Suggestions will be populated dynamically -->
+                </div>
             </div>
             <button id="search-btn">Search</button>
             <div id="search-results"></div>
@@ -176,6 +225,20 @@
                 // Dashboard
                 document.getElementById('search-btn').addEventListener('click', () => this.handleSearch());
                 document.getElementById('logout-btn').addEventListener('click', () => this.logout());
+                
+                // Search input with suggestions
+                const searchInput = document.getElementById('search-input');
+                searchInput.addEventListener('input', (e) => this.handleSearchInput(e));
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.handleSearch();
+                });
+                
+                // Hide suggestions when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.form-group')) {
+                        this.hideSuggestions();
+                    }
+                });
             }
 
             showSignup() {
@@ -262,9 +325,58 @@
                 }
             }
 
+            async handleSearchInput(e) {
+                const query = e.target.value.trim();
+                if (query.length < 2) {
+                    this.hideSuggestions();
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${this.apiUrl}/data?search=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    
+                    if (response.ok && data.foods) {
+                        this.showSuggestions(data.foods);
+                    }
+                } catch (error) {
+                    console.error('Search suggestions error:', error);
+                }
+            }
+
+            showSuggestions(foods) {
+                const suggestionsDiv = document.getElementById('search-suggestions');
+                suggestionsDiv.innerHTML = '';
+
+                foods.slice(0, 5).forEach(food => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
+                    suggestionItem.innerHTML = `
+                        <div class="suggestion-name">${food.food_name}</div>
+                        <div class="suggestion-details">${food.calories} cal • ${food.protein_g}g protein • ${food.country}</div>
+                    `;
+                    
+                    suggestionItem.addEventListener('click', () => {
+                        document.getElementById('search-input').value = food.food_name;
+                        this.hideSuggestions();
+                        this.displaySearchResults([food]);
+                    });
+                    
+                    suggestionsDiv.appendChild(suggestionItem);
+                });
+
+                suggestionsDiv.classList.remove('hidden');
+            }
+
+            hideSuggestions() {
+                document.getElementById('search-suggestions').classList.add('hidden');
+            }
+
             async handleSearch() {
                 const query = document.getElementById('search-input').value.trim();
                 if (!query) return;
+
+                this.hideSuggestions();
 
                 try {
                     const response = await fetch(`${this.apiUrl}/data?search=${encodeURIComponent(query)}`);
