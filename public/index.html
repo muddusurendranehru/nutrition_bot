@@ -4,465 +4,599 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOMA FOODS - Dr. Nehru's Nutrition Database</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        <style>
-            body {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-            }
-            
-            /* Ensure input fields are interactive */
-            input[type="email"], input[type="password"], input[type="text"] {
-                pointer-events: auto !important;
-                user-select: text !important;
-                -webkit-user-select: text !important;
-                -moz-user-select: text !important;
-                -ms-user-select: text !important;
-            }
-            
-            /* Ensure modals don't block input interaction */
-            .modal-content {
-                pointer-events: auto !important;
-            }
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .hidden { display: none; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            color: #333;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            color: #333;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px solid #fcc;
+        }
+        
+        .success {
+            background: #efe;
+            color: #363;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px solid #cfc;
+        }
+        
+        .dashboard {
+            padding: 40px;
+        }
+        
+        .search-container {
+            margin-bottom: 30px;
+        }
+        
+        .search-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-input input {
+            flex: 1;
+        }
+        
+        .search-btn {
+            padding: 15px 25px;
+            background: #28a745;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .food-result {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .food-result h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .food-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            margin-top: 20px;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
     </style>
 </head>
-<body class="min-h-screen">
-    <!-- Header -->
-    <header class="glass shadow-lg">
-        <div class="container mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-white">🍎 HOMA FOODS</h1>
-                <div id="nav-buttons">
-                    <button id="signup-btn" class="bg-white/20 text-white px-6 py-3 rounded-full hover:bg-white/30 transition-all mx-2">
-                        Sign Up
-                    </button>
-                    <button id="login-btn" class="bg-white/30 text-white px-6 py-3 rounded-full hover:bg-white/40 transition-all mx-2">
-                        Login
-                    </button>
-                    <button id="logout-btn" class="bg-red-500/80 text-white px-6 py-3 rounded-full hover:bg-red-500 transition-all mx-2 hidden">
-                        Logout
-                    </button>
-                </div>
-            </div>
+<body>
+    <!-- Signup Section -->
+    <div id="signup-section" class="container">
+        <div class="header">
+            <h1>🍎 HOMA FOODS</h1>
+            <p>Dr. Nehru's Nutrition Database</p>
         </div>
-    </header>
-
-    <!-- Welcome Page -->
-    <div id="welcome" class="container mx-auto px-6 py-12 text-center">
-        <div class="glass rounded-2xl p-12 max-w-2xl mx-auto">
-            <h2 class="text-5xl font-bold text-white mb-6">Welcome to HOMA FOODS</h2>
-            <p class="text-xl text-white/90 mb-8">3 Lakh Foods | 7 Continents | 165 Countries</p>
-            <p class="text-lg text-white/80 mb-8">Dr. Nehru's HOMA-IR Nutrition System</p>
-            <div class="flex justify-center space-x-4">
-                <button id="welcome-signup" class="bg-blue-500 text-white px-8 py-4 rounded-lg hover:bg-blue-600 transition-all text-lg">
-                    Get Started - Sign Up
-                </button>
-                <button id="welcome-login" class="bg-green-500 text-white px-8 py-4 rounded-lg hover:bg-green-600 transition-all text-lg">
-                    Already a Member - Login
-                </button>
+        <div class="form-container">
+            <div class="nav-buttons">
+                <a href="#" id="signup-nav" class="nav-btn active">Sign Up</a>
+                <a href="#" id="login-nav" class="nav-btn">Login</a>
             </div>
-        </div>
-    </div>
-
-    <!-- Dashboard (Hidden by default) -->
-    <div id="dashboard" class="container mx-auto px-6 py-12 hidden">
-        <div class="glass rounded-2xl p-8 mb-8">
-            <h2 class="text-3xl font-bold text-white mb-6">Search Foods</h2>
-            <div class="flex space-x-4">
-                <input type="text" id="search-input" placeholder="Try: chicken, biryani, idli, sambar..."
-                    class="flex-1 px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <button id="search-btn" class="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-600 transition-all">
-                    <i class="fas fa-search mr-2"></i>Search
-                </button>
-            </div>
-        </div>
-
-        <!-- Search Results -->
-        <div id="search-results" class="space-y-4"></div>
-    </div>
-
-    <!-- Signup Modal -->
-    <div id="signup-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4 modal-content">
-            <h3 class="text-2xl font-bold text-white mb-6">Sign Up</h3>
+            
             <form id="signup-form">
-                <div class="mb-4">
-                    <input type="email" id="signup-email" placeholder="Email" required autocomplete="email"
-                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        style="color: white !important;">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
                 </div>
-                <div class="mb-4">
-                    <input type="password" id="signup-password" placeholder="Password (min 3 chars)" required autocomplete="new-password"
-                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        style="color: white !important;">
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
                 </div>
-                <div class="mb-4">
-                    <input type="password" id="signup-confirm" placeholder="Confirm Password" required autocomplete="new-password"
-                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        style="color: white !important;">
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required>
                 </div>
-                <div class="mb-4">
-                    <input type="text" id="signup-name" placeholder="Name (optional)" autocomplete="name"
-                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        style="color: white !important;">
+                <div class="form-group">
+                    <label for="name">Name (optional):</label>
+                    <input type="text" id="name" name="name">
                 </div>
-                <div class="mb-6">
-                    <input type="text" id="signup-phone" placeholder="Phone (optional)" autocomplete="tel"
-                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        style="color: white !important;">
+                <div class="form-group">
+                    <label for="phone">Phone (optional):</label>
+                    <input type="text" id="phone" name="phone">
                 </div>
-                <div class="flex space-x-4">
-                    <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-all flex-1">
-                        Sign Up
-                    </button>
-                    <button type="button" id="close-signup" class="bg-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-all">
-                        Cancel
-                    </button>
-                </div>
+                <button type="submit">Sign Up</button>
             </form>
+            
+            <div id="signup-error" class="error hidden"></div>
+            <div id="signup-success" class="success hidden"></div>
         </div>
     </div>
 
-    <!-- Login Modal -->
-    <div id="login-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4 modal-content">
-            <h3 class="text-2xl font-bold text-white mb-6">Login</h3>
+    <!-- Login Section -->
+    <div id="login-section" class="container hidden">
+        <div class="header">
+            <h1>🍎 HOMA FOODS</h1>
+            <p>Dr. Nehru's Nutrition Database</p>
+        </div>
+        <div class="form-container">
+            <div class="nav-buttons">
+                <a href="#" id="signup-nav-login" class="nav-btn">Sign Up</a>
+                <a href="#" id="login-nav-login" class="nav-btn active">Login</a>
+            </div>
+            
             <form id="login-form">
-                <div class="mb-4">
-                    <input type="email" id="login-email" placeholder="Email" required autocomplete="email"
-                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
-                        style="color: white !important;">
+                <div class="form-group">
+                    <label for="login-email">Email:</label>
+                    <input type="email" id="login-email" name="email" required>
                 </div>
-                <div class="mb-6">
-                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password"
-                        class="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-green-400"
-                        style="color: white !important;">
+                <div class="form-group">
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" name="password" required>
                 </div>
-                <div class="flex space-x-4">
-                    <button type="submit" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-all flex-1">
-                        Login
-                    </button>
-                    <button type="button" id="close-login" class="bg-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-all">
-                        Cancel
-                    </button>
-                </div>
+                <button type="submit">Login</button>
             </form>
+            
+            <div id="login-error" class="error hidden"></div>
+            <div id="login-success" class="success hidden"></div>
         </div>
     </div>
 
-    <!-- Loading Spinner -->
-    <div id="loading" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="text-white text-center">
-            <i class="fas fa-spinner fa-spin text-6xl mb-4"></i>
-            <p class="text-xl">Loading...</p>
+    <!-- Dashboard Section -->
+    <div id="dashboard" class="container hidden">
+        <div class="header">
+            <h1>🍎 HOMA FOODS</h1>
+            <p>Nutrition Dashboard</p>
         </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-8 right-8 glass rounded-lg p-4 text-white shadow-lg transform translate-y-32 transition-transform duration-300 z-50">
-        <span id="toast-message"></span>
+        <div class="dashboard">
+            <div class="search-container">
+                <h2 style="margin-bottom: 20px; color: #333;">Search Foods</h2>
+                <div class="search-input">
+                    <input type="text" id="search-input" placeholder="Search for food (e.g., biryani, idli, chicken)">
+                    <button id="search-btn" class="search-btn">Search</button>
+                </div>
+            </div>
+            
+            <div id="search-results"></div>
+            
+            <button id="logout-btn" class="logout-btn">Logout</button>
+        </div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3031/api';
-        
         class HomaFoodsApp {
             constructor() {
-                this.token = localStorage.getItem('homa_token');
-                this.user = null;
+                this.apiUrl = window.location.origin + '/api';
+                this.token = localStorage.getItem('homaFoodsToken');
+                
+                console.log('🚀 HOMA FOODS App starting...');
+                console.log('🌐 API URL:', this.apiUrl);
+                
                 this.init();
             }
 
             init() {
-                console.log('🚀 HOMA FOODS App starting...');
                 this.setupEventListeners();
-                if (this.token) {
-                    this.checkAuth();
-                }
+                this.checkAuth();
             }
 
             setupEventListeners() {
-                // Header buttons
-                document.getElementById('signup-btn').addEventListener('click', () => this.showSignup());
-                document.getElementById('login-btn').addEventListener('click', () => this.showLogin());
-                document.getElementById('logout-btn').addEventListener('click', () => this.handleLogout());
+                // Navigation
+                document.getElementById('signup-nav').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showSignup();
+                });
                 
-                // Welcome buttons
-                document.getElementById('welcome-signup').addEventListener('click', () => this.showSignup());
-                document.getElementById('welcome-login').addEventListener('click', () => this.showLogin());
+                document.getElementById('login-nav').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showLogin();
+                });
                 
-                // Modal close buttons
-                document.getElementById('close-signup').addEventListener('click', () => this.hideSignup());
-                document.getElementById('close-login').addEventListener('click', () => this.hideLogin());
+                document.getElementById('signup-nav-login').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showSignup();
+                });
+                
+                document.getElementById('login-nav-login').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showLogin();
+                });
                 
                 // Forms
                 document.getElementById('signup-form').addEventListener('submit', (e) => this.handleSignup(e));
                 document.getElementById('login-form').addEventListener('submit', (e) => this.handleLogin(e));
                 
-                // Search
+                // Dashboard
                 document.getElementById('search-btn').addEventListener('click', () => this.handleSearch());
                 document.getElementById('search-input').addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') this.handleSearch();
                 });
+                document.getElementById('logout-btn').addEventListener('click', () => this.logout());
+                
+                console.log('✅ Event listeners setup complete');
             }
 
             showSignup() {
-                const modal = document.getElementById('signup-modal');
-                modal.classList.remove('hidden');
-                // Focus on first input after modal opens
-                setTimeout(() => {
-                    const emailInput = document.getElementById('signup-email');
-                    console.log('🔍 Focusing on email input:', emailInput);
-                    if (emailInput) {
-                        emailInput.focus();
-                        console.log('✅ Email input focused');
-                    } else {
-                        console.error('❌ Email input not found');
-                    }
-                }, 100);
-            }
-
-            hideSignup() {
-                document.getElementById('signup-modal').classList.add('hidden');
-                document.getElementById('signup-form').reset();
+                document.getElementById('signup-section').classList.remove('hidden');
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+                
+                // Update nav buttons
+                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('signup-nav').classList.add('active');
+                document.getElementById('signup-nav-login').classList.add('active');
             }
 
             showLogin() {
-                const modal = document.getElementById('login-modal');
-                modal.classList.remove('hidden');
-                // Focus on first input after modal opens
-                setTimeout(() => {
-                    const emailInput = document.getElementById('login-email');
-                    console.log('🔍 Focusing on login email input:', emailInput);
-                    if (emailInput) {
-                        emailInput.focus();
-                        console.log('✅ Login email input focused');
-                    } else {
-                        console.error('❌ Login email input not found');
-                    }
-                }, 100);
-            }
-
-            hideLogin() {
-                document.getElementById('login-modal').classList.add('hidden');
-                document.getElementById('login-form').reset();
+                document.getElementById('signup-section').classList.add('hidden');
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+                
+                // Update nav buttons
+                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('login-nav').classList.add('active');
+                document.getElementById('login-nav-login').classList.add('active');
             }
 
             showDashboard() {
-                document.getElementById('welcome').classList.add('hidden');
+                document.getElementById('signup-section').classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
-                document.getElementById('signup-btn').classList.add('hidden');
-                document.getElementById('login-btn').classList.add('hidden');
-                document.getElementById('logout-btn').classList.remove('hidden');
-            }
-
-            showWelcome() {
-                document.getElementById('welcome').classList.remove('hidden');
-                document.getElementById('dashboard').classList.add('hidden');
-                document.getElementById('signup-btn').classList.remove('hidden');
-                document.getElementById('login-btn').classList.remove('hidden');
-                document.getElementById('logout-btn').classList.add('hidden');
-            }
-
-            showLoading(show) {
-                document.getElementById('loading').classList.toggle('hidden', !show);
-            }
-
-            showToast(message, type = 'success') {
-                const toast = document.getElementById('toast');
-                const toastMessage = document.getElementById('toast-message');
-                toastMessage.textContent = message;
-                toast.classList.remove('translate-y-32');
-                setTimeout(() => toast.classList.add('translate-y-32'), 3000);
             }
 
             async handleSignup(e) {
                 e.preventDefault();
-                console.log('📝 Signup started...');
+                console.log('🔍 Handle signup called');
                 
-                const email = document.getElementById('signup-email').value;
-                const password = document.getElementById('signup-password').value;
-                const confirmPassword = document.getElementById('signup-confirm').value;
-                const name = document.getElementById('signup-name').value || '';
-                const phone = document.getElementById('signup-phone').value || '';
-
-                if (password !== confirmPassword) {
-                    this.showToast('Passwords do not match!', 'error');
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                
+                console.log('📝 Signup data:', { email, password, confirmPassword, name, phone });
+                
+                // Clear previous messages
+                this.hideMessages();
+                
+                // Validation
+                if (!email) {
+                    this.showError('signup-error', 'Please enter your email address!');
                     return;
                 }
-
+                
+                if (!password) {
+                    this.showError('signup-error', 'Please enter a password!');
+                    return;
+                }
+                
                 if (password.length < 3) {
-                    this.showToast('Password must be at least 3 characters!', 'error');
+                    this.showError('signup-error', 'Password must be at least 3 characters!');
                     return;
                 }
-
-                this.showLoading(true);
-
+                
+                if (password !== confirmPassword) {
+                    this.showError('signup-error', 'Passwords do not match!');
+                    return;
+                }
+                
                 try {
-                    console.log('🔄 Sending signup request to:', `${API_URL}/auth/signup`);
-                    const response = await fetch(`${API_URL}/auth/signup`, {
+                    const response = await fetch(`${this.apiUrl}/auth/signup`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, password, confirmPassword, name, phone })
                     });
-
+                    
                     const data = await response.json();
-                    console.log('📨 Signup response:', data);
-
+                    console.log('📝 Signup response:', data);
+                    
                     if (response.ok) {
                         this.token = data.token;
-                        this.user = data.user;
-                        localStorage.setItem('homa_token', this.token);
-                        this.showToast('Sign up successful! Welcome!');
-                        this.hideSignup();
-                        this.showDashboard();
+                        localStorage.setItem('homaFoodsToken', this.token);
+                        this.showSuccess('signup-success', 'Sign up successful! Redirecting to dashboard...');
+                        setTimeout(() => this.showDashboard(), 1000);
                     } else {
-                        this.showToast(data.error || 'Sign up failed!', 'error');
+                        this.showError('signup-error', data.error || 'Sign up failed!');
                     }
                 } catch (error) {
                     console.error('❌ Signup error:', error);
-                    this.showToast('Network error! Please check your connection.', 'error');
-                } finally {
-                    this.showLoading(false);
+                    this.showError('signup-error', 'Network error during signup.');
                 }
             }
 
             async handleLogin(e) {
                 e.preventDefault();
-                console.log('🔐 Login started...');
-
+                console.log('🔍 Handle login called');
+                
                 const email = document.getElementById('login-email').value;
                 const password = document.getElementById('login-password').value;
-
-                this.showLoading(true);
-
+                
+                console.log('📝 Login data:', { email, password });
+                
+                // Clear previous messages
+                this.hideMessages();
+                
+                // Validation
+                if (!email) {
+                    this.showError('login-error', 'Please enter your email address!');
+                    return;
+                }
+                
+                if (!password) {
+                    this.showError('login-error', 'Please enter a password!');
+                    return;
+                }
+                
                 try {
-                    const response = await fetch(`${API_URL}/auth/login`, {
+                    const response = await fetch(`${this.apiUrl}/auth/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, password })
                     });
-
+                    
                     const data = await response.json();
-
+                    console.log('📝 Login response:', data);
+                    
                     if (response.ok) {
                         this.token = data.token;
-                        this.user = data.user;
-                        localStorage.setItem('homa_token', this.token);
-                        this.showToast('Login successful! Welcome back!');
-                        this.hideLogin();
-                        this.showDashboard();
+                        localStorage.setItem('homaFoodsToken', this.token);
+                        this.showSuccess('login-success', 'Login successful! Redirecting to dashboard...');
+                        setTimeout(() => this.showDashboard(), 1000);
                     } else {
-                        this.showToast(data.error || 'Login failed!', 'error');
+                        this.showError('login-error', data.error || 'Login failed!');
                     }
                 } catch (error) {
                     console.error('❌ Login error:', error);
-                    this.showToast('Network error! Please check your connection.', 'error');
-                } finally {
-                    this.showLoading(false);
+                    this.showError('login-error', 'Network error during login.');
                 }
             }
 
             async handleSearch() {
-                const searchTerm = document.getElementById('search-input').value.trim();
-                if (!searchTerm) {
-                    this.showToast('Please enter a food name!', 'error');
-                    return;
-                }
+                const query = document.getElementById('search-input').value.trim();
+                if (!query) return;
 
-                this.showLoading(true);
+                console.log('🔍 Searching for:', query);
 
                 try {
-                    const response = await fetch(`${API_URL}/data?search=${encodeURIComponent(searchTerm)}`);
+                    const response = await fetch(`${this.apiUrl}/data?search=${encodeURIComponent(query)}`);
                     const data = await response.json();
-
-                    if (response.ok && data.foods) {
+                    
+                    if (response.ok) {
                         this.displaySearchResults(data.foods);
-                        if (data.foods.length === 0) {
-                            this.showToast('No foods found. Try a different search!', 'info');
-                        }
                     } else {
-                        this.showToast('Search failed!', 'error');
+                        console.error('Search failed:', data);
                     }
                 } catch (error) {
                     console.error('❌ Search error:', error);
-                    this.showToast('Network error! Please check your connection.', 'error');
-                } finally {
-                    this.showLoading(false);
                 }
             }
 
             displaySearchResults(foods) {
                 const resultsDiv = document.getElementById('search-results');
+                resultsDiv.innerHTML = '';
+
                 if (foods.length === 0) {
-                    resultsDiv.innerHTML = '<p class="text-white text-center">No results found.</p>';
+                    resultsDiv.innerHTML = '<div class="food-result"><h3>No foods found</h3><p>Try a different search term.</p></div>';
                     return;
                 }
 
-                resultsDiv.innerHTML = foods.map(food => `
-                    <div class="glass rounded-xl p-6">
-                        <h3 class="text-2xl font-bold text-white mb-4">${food.food_name}</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-white">
-                            <div>
-                                <p class="text-white/70">Calories</p>
-                                <p class="text-2xl font-bold">${food.calories}</p>
+                foods.forEach(food => {
+                    const foodDiv = document.createElement('div');
+                    foodDiv.className = 'food-result';
+                    foodDiv.innerHTML = `
+                        <h3>${food.food_name}</h3>
+                        <p>${food.country} • ${food.cuisine_type}</p>
+                        <div class="food-stats">
+                            <div class="stat">
+                                <div class="stat-label">Calories</div>
+                                <div class="stat-value">${food.calories}</div>
                             </div>
-                            <div>
-                                <p class="text-white/70">Protein</p>
-                                <p class="text-2xl font-bold">${food.protein_g}g</p>
+                            <div class="stat">
+                                <div class="stat-label">Protein</div>
+                                <div class="stat-value">${food.protein_g}g</div>
                             </div>
-                            <div>
-                                <p class="text-white/70">Fat</p>
-                                <p class="text-2xl font-bold">${food.fat_g}g</p>
+                            <div class="stat">
+                                <div class="stat-label">Fat</div>
+                                <div class="stat-value">${food.fat_g}g</div>
                             </div>
-                            <div>
-                                <p class="text-white/70">Health Score</p>
-                                <p class="text-2xl font-bold ${food.diabetic_rating === 'green' ? 'text-green-400' : food.diabetic_rating === 'yellow' ? 'text-yellow-400' : 'text-red-400'}">${food.health_score}/100</p>
+                            <div class="stat">
+                                <div class="stat-label">Health Score</div>
+                                <div class="stat-value">${food.health_score}/100</div>
                             </div>
                         </div>
-                        <p class="text-white/70 mt-4">${food.country} • ${food.cuisine_type}</p>
-                    </div>
-                `).join('');
+                    `;
+                    resultsDiv.appendChild(foodDiv);
+                });
             }
 
-            async checkAuth() {
-                try {
-                    const response = await fetch(`${API_URL}/user/profile`, {
-                        headers: { 'Authorization': `Bearer ${this.token}` }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.user = data.user;
-                        this.showDashboard();
-                    } else {
-                        localStorage.removeItem('homa_token');
-                        this.token = null;
-                    }
-                } catch (error) {
-                    console.error('Auth check failed:', error);
+            checkAuth() {
+                if (this.token) {
+                    this.showDashboard();
+                } else {
+                    this.showSignup();
                 }
             }
 
-            handleLogout() {
-                localStorage.removeItem('homa_token');
+            logout() {
                 this.token = null;
-                this.user = null;
-                this.showWelcome();
-                this.showToast('Logged out successfully!');
+                localStorage.removeItem('homaFoodsToken');
+                this.showSignup();
+            }
+
+            showError(elementId, message) {
+                const errorDiv = document.getElementById(elementId);
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+            }
+
+            showSuccess(elementId, message) {
+                const successDiv = document.getElementById(elementId);
+                successDiv.textContent = message;
+                successDiv.classList.remove('hidden');
+            }
+
+            hideMessages() {
+                document.getElementById('signup-error').classList.add('hidden');
+                document.getElementById('signup-success').classList.add('hidden');
+                document.getElementById('login-error').classList.add('hidden');
+                document.getElementById('login-success').classList.add('hidden');
             }
         }
 
         // Initialize app when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Starting HOMA FOODS...');
+            console.log('🚀 DOM loaded, initializing HOMA FOODS App...');
             new HomaFoodsApp();
         });
     </script>

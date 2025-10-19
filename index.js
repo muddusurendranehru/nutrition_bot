@@ -345,7 +345,7 @@ app.use((err, req, res, next) => {
 // FRONTEND ROUTE
 // ============================================
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/simple-index.html');
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 app.get('/test', (req, res) => {
