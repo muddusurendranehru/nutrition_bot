@@ -77,6 +77,38 @@ class BoltStyleFetcher {
       'idli': {
         'icmr': { food_name: 'Idli (ICMR)', calories: 80, protein_g: 3, fat_g: 0.5, carbs_g: 16, diabetic_rating: 'green', health_score: 85, country: 'India', source: 'ICMR' },
         'tara_dalal': { food_name: 'Idli Sambar (Tara Dalal)', calories: 120, protein_g: 5, fat_g: 2, carbs_g: 20, diabetic_rating: 'green', health_score: 80, country: 'India', source: 'Tara Dalal' }
+      },
+      'bobbatlu': {
+        'icmr': { food_name: 'Bobbatlu (ICMR)', calories: 320, protein_g: 6, fat_g: 12, carbs_g: 45, diabetic_rating: 'red', health_score: 50, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Puran Poli (Tara Dalal)', calories: 300, protein_g: 5, fat_g: 10, carbs_g: 42, diabetic_rating: 'red', health_score: 55, country: 'India', source: 'Tara Dalal' }
+      },
+      'rice': {
+        'usda': { food_name: 'White Rice (USDA)', calories: 200, protein_g: 4, fat_g: 0.5, carbs_g: 45, diabetic_rating: 'yellow', health_score: 60, country: 'Global', source: 'USDA' },
+        'icmr': { food_name: 'Steamed Rice (ICMR)', calories: 180, protein_g: 3.5, fat_g: 0.3, carbs_g: 40, diabetic_rating: 'yellow', health_score: 65, country: 'India', source: 'ICMR' }
+      },
+      'biryani': {
+        'icmr': { food_name: 'Biryani (ICMR)', calories: 350, protein_g: 15, fat_g: 18, carbs_g: 30, diabetic_rating: 'yellow', health_score: 60, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Veg Biryani (Tara Dalal)', calories: 300, protein_g: 10, fat_g: 12, carbs_g: 35, diabetic_rating: 'yellow', health_score: 70, country: 'India', source: 'Tara Dalal' }
+      },
+      'dosa': {
+        'icmr': { food_name: 'Dosa (ICMR)', calories: 120, protein_g: 4, fat_g: 3, carbs_g: 20, diabetic_rating: 'green', health_score: 80, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Masala Dosa (Tara Dalal)', calories: 180, protein_g: 6, fat_g: 5, carbs_g: 28, diabetic_rating: 'green', health_score: 75, country: 'India', source: 'Tara Dalal' }
+      },
+      'sambar': {
+        'icmr': { food_name: 'Sambar (ICMR)', calories: 150, protein_g: 8, fat_g: 5, carbs_g: 15, diabetic_rating: 'green', health_score: 90, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Mixed Veg Sambar (Tara Dalal)', calories: 160, protein_g: 9, fat_g: 6, carbs_g: 18, diabetic_rating: 'green', health_score: 88, country: 'India', source: 'Tara Dalal' }
+      },
+      'pulihora': {
+        'icmr': { food_name: 'Pulihora (ICMR)', calories: 280, protein_g: 5, fat_g: 10, carbs_g: 40, diabetic_rating: 'yellow', health_score: 70, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Tamarind Rice (Tara Dalal)', calories: 260, protein_g: 4, fat_g: 8, carbs_g: 38, diabetic_rating: 'yellow', health_score: 72, country: 'India', source: 'Tara Dalal' }
+      },
+      'ladoo': {
+        'icmr': { food_name: 'Besan Ladoo (ICMR)', calories: 180, protein_g: 4, fat_g: 8, carbs_g: 25, diabetic_rating: 'red', health_score: 40, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Motichoor Ladoo (Tara Dalal)', calories: 160, protein_g: 3, fat_g: 6, carbs_g: 28, diabetic_rating: 'red', health_score: 35, country: 'India', source: 'Tara Dalal' }
+      },
+      'gulab': {
+        'icmr': { food_name: 'Gulab Jamun (ICMR)', calories: 300, protein_g: 4, fat_g: 12, carbs_g: 45, diabetic_rating: 'red', health_score: 30, country: 'India', source: 'ICMR' },
+        'tara_dalal': { food_name: 'Gulab Jamun (Tara Dalal)', calories: 280, protein_g: 3, fat_g: 10, carbs_g: 42, diabetic_rating: 'red', health_score: 35, country: 'India', source: 'Tara Dalal' }
       }
     };
 

@@ -333,10 +333,21 @@ app.post('/api/smart-search', async (req, res) => {
     const result = await fetcher.searchAndAddFood(foodName, cuisineType);
     
     if (result) {
+      // Ensure all speedometer data is present
+      const foodData = {
+        ...result,
+        calories: parseFloat(result.calories) || 0,
+        protein_g: parseFloat(result.protein_g) || 0,
+        fat_g: parseFloat(result.fat_g) || 0,
+        carbs_g: parseFloat(result.carbs_g) || 0,
+        diabetic_rating: result.diabetic_rating || 'yellow',
+        health_score: parseInt(result.health_score) || 50
+      };
+      
       res.json({
         success: true,
         message: `Food "${foodName}" added to database`,
-        food: result
+        food: foodData
       });
     } else {
       res.json({

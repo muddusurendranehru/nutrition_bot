@@ -448,13 +448,19 @@
                     
                     const data = await response.json();
                     
-                    if (data.success) {
-                        this.showSmartSearchStatus('✅ ' + data.message, 'success');
-                        // Search for the newly added food
-                        setTimeout(() => this.handleSearch(), 1000);
-                    } else {
-                        this.showSmartSearchStatus('⚠️ ' + data.message, 'warning');
-                    }
+               if (data.success) {
+                   this.showSmartSearchStatus('✅ ' + data.message + ' - Displaying with speedometer...', 'success');
+                   
+                   // Display the newly added food immediately with speedometer
+                   if (data.food) {
+                       this.displaySearchResults([data.food]);
+                   } else {
+                       // Fallback: Search for the newly added food
+                       setTimeout(() => this.handleSearch(), 500);
+                   }
+               } else {
+                   this.showSmartSearchStatus('⚠️ ' + data.message, 'warning');
+               }
                 } catch (error) {
                     console.error('Smart search error:', error);
                     this.showSmartSearchStatus('❌ Smart search failed: ' + error.message, 'error');
