@@ -352,6 +352,10 @@ app.get('/test', (req, res) => {
   res.sendFile(__dirname + '/test-frontend-simple.html');
 });
 
+app.get('/input-test', (req, res) => {
+  res.sendFile(__dirname + '/test-local-inputs.html');
+});
+
 app.get('/debug', (req, res) => {
     res.sendFile(__dirname + '/debug-signup-frontend.html');
 });

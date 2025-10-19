@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOMA FOODS - Input Field Test</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .test-section h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        input:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        .instructions {
+            color: white;
+            background: rgba(59, 130, 246, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 HOMA FOODS - Input Field Test</h1>
+        
+        <div class="instructions">
+            <h3>📋 Test Instructions:</h3>
+            <p>1. Click in each input field below</p>
+            <p>2. Try typing in each field</p>
+            <p>3. Check if the test results show "✅ WORKING"</p>
+            <p>4. If all fields work, the overlay fix was successful!</p>
+        </div>
+
+        <div class="test-section">
+            <h3>📧 Email Field Test</h3>
+            <input type="email" id="email-test" placeholder="Click here and type your email..." onfocus="testField('email')" oninput="testField('email')">
+            <div id="email-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔒 Password Field Test</h3>
+            <input type="password" id="password-test" placeholder="Click here and type your password..." onfocus="testField('password')" oninput="testField('password')">
+            <div id="password-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>👤 Name Field Test</h3>
+            <input type="text" id="name-test" placeholder="Click here and type your name..." onfocus="testField('name')" oninput="testField('name')">
+            <div id="name-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📱 Phone Field Test</h3>
+            <input type="text" id="phone-test" placeholder="Click here and type your phone..." onfocus="testField('phone')" oninput="testField('phone')">
+            <div id="phone-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Search Field Test</h3>
+            <input type="text" id="search-test" placeholder="Click here and type food name..." onfocus="testField('search')" oninput="testField('search')">
+            <div id="search-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Overall Test Results</h3>
+            <div id="overall-result" class="test-result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            email: false,
+            password: false,
+            name: false,
+            phone: false,
+            search: false
+        };
+
+        function testField(fieldName) {
+            const input = document.getElementById(fieldName + '-test');
+            const result = document.getElementById(fieldName + '-result');
+            
+            if (input.value.length > 0) {
+                testResults[fieldName] = true;
+                result.innerHTML = '✅ WORKING - You can type in this field!';
+                result.className = 'test-result success';
+                result.style.display = 'block';
+            } else {
+                testResults[fieldName] = false;
+                result.innerHTML = '⚠️ Click and type in this field to test';
+                result.className = 'test-result error';
+                result.style.display = 'block';
+            }
+            
+            updateOverallResult();
+        }
+
+        function updateOverallResult() {
+            const overallResult = document.getElementById('overall-result');
+            const workingFields = Object.values(testResults).filter(result => result).length;
+            const totalFields = Object.keys(testResults).length;
+            
+            if (workingFields === totalFields) {
+                overallResult.innerHTML = '🎉 ALL TESTS PASSED! Input fields are working perfectly!';
+                overallResult.className = 'test-result success';
+            } else {
+                overallResult.innerHTML = `📊 Progress: ${workingFields}/${totalFields} fields working`;
+                overallResult.className = 'test-result error';
+            }
+            overallResult.style.display = 'block';
+        }
+
+        // Auto-test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 HOMA FOODS Input Field Test Page Loaded');
+            console.log('📋 Test each input field by clicking and typing');
+            console.log('✅ If all fields work, the overlay fix was successful!');
+        });
+    </script>
+</body>
+</html>
