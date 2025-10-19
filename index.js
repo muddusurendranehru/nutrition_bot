@@ -316,6 +316,7 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
 // SMART FOOD FETCHER
 // ============================================
 const SmartFoodFetcher = require('./database/smart-food-fetcher');
+const BoltStyleFetcher = require('./database/bolt-style-fetcher');
 
 // Smart food search and add endpoint
 app.post('/api/smart-search', async (req, res) => {
@@ -346,6 +347,27 @@ app.post('/api/smart-search', async (req, res) => {
   } catch (error) {
     console.error('Smart search error:', error);
     res.status(500).json({ error: 'Smart search failed' });
+  }
+});
+
+// Bolt-style search endpoint (like your old system)
+app.post('/api/bolt-search', async (req, res) => {
+  try {
+    const { foodName } = req.body;
+    
+    if (!foodName) {
+      return res.status(400).json({ error: 'Food name is required' });
+    }
+
+    console.log(`🚀 Bolt-style search requested: ${foodName}`);
+    
+    const fetcher = new BoltStyleFetcher();
+    const result = await fetcher.boltStyleSearch(foodName);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Bolt-style search error:', error);
+    res.status(500).json({ error: 'Bolt-style search failed' });
   }
 });
 

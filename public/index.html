@@ -222,6 +222,7 @@
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button id="search-btn">Search</button>
                 <button id="smart-search-btn" style="background: #28a745;">Smart Search</button>
+                <button id="bolt-search-btn" style="background: #6f42c1;">Bolt Search</button>
             </div>
             <div id="smart-search-status" class="hidden" style="padding: 10px; border-radius: 5px; margin-bottom: 10px;"></div>
             <div id="search-results"></div>
@@ -254,6 +255,7 @@
                 // Dashboard
                 document.getElementById('search-btn').addEventListener('click', () => this.handleSearch());
                 document.getElementById('smart-search-btn').addEventListener('click', () => this.handleSmartSearch());
+                document.getElementById('bolt-search-btn').addEventListener('click', () => this.handleBoltSearch());
                 document.getElementById('logout-btn').addEventListener('click', () => this.logout());
                 
                 // Search input with suggestions
@@ -479,6 +481,96 @@
                 setTimeout(() => {
                     statusDiv.classList.add('hidden');
                 }, 5000);
+            }
+
+            async handleBoltSearch() {
+                const query = document.getElementById('search-input').value.trim();
+                if (!query) {
+                    this.showSmartSearchStatus('⚠️ Please enter a food name to search', 'warning');
+                    return;
+                }
+
+                this.hideSuggestions();
+                this.showSmartSearchStatus('🚀 Bolt-style searching across all sources...', 'info');
+
+                try {
+                    const response = await fetch(`${this.apiUrl}/bolt-search`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ foodName: query })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showSmartSearchStatus(`✅ Found ${data.foods.length} results from ${data.sources_searched} sources`, 'success');
+                        this.displayBoltResults(data.foods);
+                    } else {
+                        this.showSmartSearchStatus('⚠️ ' + data.message, 'warning');
+                    }
+                } catch (error) {
+                    console.error('Bolt search error:', error);
+                    this.showSmartSearchStatus('❌ Bolt search failed: ' + error.message, 'error');
+                }
+            }
+
+            displayBoltResults(foods) {
+                const resultsDiv = document.getElementById('search-results');
+                resultsDiv.innerHTML = '';
+
+                if (foods.length === 0) {
+                    resultsDiv.innerHTML = '<p>No foods found.</p>';
+                    return;
+                }
+
+                foods.forEach(food => {
+                    const foodDiv = document.createElement('div');
+                    foodDiv.style.cssText = 'background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid ' + this.getHealthColor(food.diabetic_rating) + ';';
+                    
+                    const healthIcon = this.getHealthIcon(food.diabetic_rating);
+                    const healthText = this.getHealthText(food.diabetic_rating);
+                    
+                    foodDiv.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="margin: 0;">${food.food_name}</h3>
+                            <div style="background: ${this.getHealthColor(food.diabetic_rating)}; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
+                                ${healthIcon} ${healthText}
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                            <div><strong>🔥 Calories:</strong> ${food.calories}</div>
+                            <div><strong>💪 Protein:</strong> ${food.protein_g}g</div>
+                            <div><strong>🥑 Fat:</strong> ${food.fat_g}g</div>
+                            <div><strong>🍞 Carbs:</strong> ${food.carbs_g}g</div>
+                            <div><strong>⭐ Health:</strong> ${food.health_score}/100</div>
+                            <div><strong>🌍 Country:</strong> ${food.country}</div>
+                            <div><strong>📡 Source:</strong> ${food.source_name}</div>
+                            <div><strong>⏰ Fetched:</strong> ${new Date(food.fetched_at).toLocaleTimeString()}</div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <div style="text-align: center; margin-bottom: 10px;"><strong>Bolt-Style Speedometer</strong></div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 14px; margin-bottom: 5px;">🔥 Calories</div>
+                                    ${this.createSpeedometer(food.calories, 0, 500, 'calories')}
+                                </div>
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 14px; margin-bottom: 5px;">💪 Protein</div>
+                                    ${this.createSpeedometer(food.protein_g, 0, 50, 'protein')}
+                                </div>
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 14px; margin-bottom: 5px;">🥑 Fat</div>
+                                    ${this.createSpeedometer(food.fat_g, 0, 30, 'fat')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(foodDiv);
+                });
             }
 
             displaySearchResults(foods) {
