@@ -6,11 +6,25 @@
     <title>HOMA FOODS - Dr. Nehru's Nutrition Database</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
+        <style>
+            body {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+            }
+            
+            /* Ensure input fields are interactive */
+            input[type="email"], input[type="password"], input[type="text"] {
+                pointer-events: auto !important;
+                user-select: text !important;
+                -webkit-user-select: text !important;
+                -moz-user-select: text !important;
+                -ms-user-select: text !important;
+            }
+            
+            /* Ensure modals don't block input interaction */
+            .modal-content {
+                pointer-events: auto !important;
+            }
         .glass {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -76,7 +90,7 @@
 
     <!-- Signup Modal -->
     <div id="signup-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4 modal-content">
             <h3 class="text-2xl font-bold text-white mb-6">Sign Up</h3>
             <form id="signup-form">
                 <div class="mb-4">
@@ -118,7 +132,7 @@
 
     <!-- Login Modal -->
     <div id="login-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="glass rounded-2xl p-8 max-w-md w-full mx-4 modal-content">
             <h3 class="text-2xl font-bold text-white mb-6">Login</h3>
             <form id="login-form">
                 <div class="mb-4">
@@ -204,7 +218,14 @@
                 modal.classList.remove('hidden');
                 // Focus on first input after modal opens
                 setTimeout(() => {
-                    document.getElementById('signup-email').focus();
+                    const emailInput = document.getElementById('signup-email');
+                    console.log('🔍 Focusing on email input:', emailInput);
+                    if (emailInput) {
+                        emailInput.focus();
+                        console.log('✅ Email input focused');
+                    } else {
+                        console.error('❌ Email input not found');
+                    }
                 }, 100);
             }
 
@@ -218,7 +239,14 @@
                 modal.classList.remove('hidden');
                 // Focus on first input after modal opens
                 setTimeout(() => {
-                    document.getElementById('login-email').focus();
+                    const emailInput = document.getElementById('login-email');
+                    console.log('🔍 Focusing on login email input:', emailInput);
+                    if (emailInput) {
+                        emailInput.focus();
+                        console.log('✅ Login email input focused');
+                    } else {
+                        console.error('❌ Login email input not found');
+                    }
                 }, 100);
             }
 

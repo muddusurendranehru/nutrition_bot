@@ -1,7 +1,7 @@
 // HOMA FOODS Frontend - Simple Authentication & Dashboard
 class HomaFoodsApp {
     constructor() {
-        this.apiUrl = 'http://localhost:3031/api';
+        this.apiUrl = window.location.origin + '/api';
         this.token = localStorage.getItem('homa_token');
         this.user = null;
         
@@ -225,6 +225,7 @@ class HomaFoodsApp {
             const phone = document.getElementById('signup-phone').value || '';
             
             console.log('🔍 Signup data:', { email, password, confirmPassword, name, phone });
+            console.log('🔍 API URL:', this.apiUrl);
             
             // Simple validation
             if (password !== confirmPassword) {
