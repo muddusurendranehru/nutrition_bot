@@ -235,10 +235,35 @@ app.get('/api/data', async (req, res) => {
     
     const result = await pool.query(query, params);
     
+    // AUTO-INSERT RULE: If search term provided but no results found, try to fetch and add to database
+    if (search && result.rows.length === 0) {
+      console.log(`🔍 No results for "${search}" - AUTO-INSERTING to grow database...`);
+      try {
+        const SmartFoodFetcher = require('./database/smart-food-fetcher');
+        const fetcher = new SmartFoodFetcher();
+        const newFood = await fetcher.searchAndAddFood(search, 'general');
+        
+        if (newFood) {
+          console.log(`✅ AUTO-INSERTED: ${newFood.food_name} - Database growing!`);
+          // Return the newly added food
+          return res.json({
+            foods: [newFood],
+            total: 1,
+            search: search,
+            auto_inserted: true,
+            message: `Added "${newFood.food_name}" to database`
+          });
+        }
+      } catch (autoInsertError) {
+        console.log(`⚠️ Auto-insert failed: ${autoInsertError.message}`);
+      }
+    }
+    
     res.json({
       foods: result.rows,
       total: result.rows.length,
-      search: search || null
+      search: search || null,
+      auto_inserted: false
     });
 
   } catch (error) {
