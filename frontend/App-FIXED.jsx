@@ -447,11 +447,13 @@ function Dashboard() {
 
   return (
     <div style={{ 
-      padding: '20px', 
-      maxWidth: '1200px', 
+      padding: '10px', 
+      maxWidth: '100%', 
       margin: '0 auto', 
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-      minHeight: '100vh' 
+      minHeight: '100vh',
+      width: '100%',
+      boxSizing: 'border-box'
     }}>
       
       {/* TITLE */}
@@ -459,7 +461,7 @@ function Dashboard() {
         <h1 style={{ 
           color: '#e74c3c', 
           margin: 0, 
-          fontSize: '56px', 
+          fontSize: window.innerWidth < 768 ? '32px' : '56px', 
           fontWeight: 'bold',
           textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
           fontFamily: 'Arial, sans-serif'
@@ -469,13 +471,18 @@ function Dashboard() {
         <h2 style={{ 
           color: '#2c3e50', 
           margin: '5px 0 0 0', 
-          fontSize: '24px', 
+          fontSize: window.innerWidth < 768 ? '16px' : '24px', 
           fontWeight: '600',
           textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
         }}>
           Dr. Nehru's Nutrition Database
         </h2>
-        <p style={{ color: '#666', margin: '10px 0 0 0', fontSize: '18px' }}>
+        <p style={{ 
+          color: '#666', 
+          margin: '10px 0 0 0', 
+          fontSize: window.innerWidth < 768 ? '14px' : '18px',
+          padding: '0 10px'
+        }}>
           760+ Foods • Smart Search • AI Analysis • Cross-verified Data
         </p>
       </div>
@@ -500,21 +507,35 @@ function Dashboard() {
       <div style={{ 
         backgroundColor: 'rgba(255,255,255,0.95)', 
         backdropFilter: 'blur(10px)',
-        padding: '30px', 
+        padding: window.innerWidth < 768 ? '15px' : '30px', 
         borderRadius: '15px', 
         boxShadow: '0 8px 32px rgba(0,0,0,0.2)', 
         marginBottom: '20px',
-        border: '1px solid rgba(255,255,255,0.2)'
+        border: '1px solid rgba(255,255,255,0.2)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+          gap: '15px', 
+          marginBottom: '20px',
+          width: '100%'
+        }}>
           <input 
             type="text" 
             value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Type 'chicken biryani' to see nutrition analysis..."
             style={{ 
-              flex: 1, padding: '15px 20px', fontSize: '18px', 
-              border: '3px solid #ddd', borderRadius: '10px', outline: 'none'
+              flex: 1, 
+              padding: window.innerWidth < 768 ? '12px 15px' : '15px 20px', 
+              fontSize: window.innerWidth < 768 ? '16px' : '18px', 
+              border: '3px solid #ddd', 
+              borderRadius: '10px', 
+              outline: 'none',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
             onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
             onBlur={(e) => e.target.style.borderColor = '#ddd'}
@@ -579,7 +600,13 @@ function Dashboard() {
       )}
 
       {/* THREE SEARCH RESULT BOXES */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: window.innerWidth < 768 ? '1fr' : 'repeat(auto-fit, minmax(350px, 1fr))', 
+        gap: '20px', 
+        marginBottom: '30px',
+        width: '100%'
+      }}>
         
         {/* SEARCH RESULTS */}
         <div style={{ 
@@ -653,16 +680,29 @@ function Dashboard() {
                   {/* SPEEDOMETER */}
                   <div style={{ margin: '15px 0', textAlign: 'center' }}>
                     <div style={{ 
-                      width: '100%', height: '20px', backgroundColor: '#e0e0e0', 
-                      borderRadius: '10px', overflow: 'hidden', position: 'relative'
+                      width: '100%', 
+                      height: window.innerWidth < 768 ? '25px' : '20px', 
+                      backgroundColor: '#e0e0e0', 
+                      borderRadius: '10px', 
+                      overflow: 'hidden', 
+                      position: 'relative',
+                      border: '2px solid #ddd'
                     }}>
                       <div style={{
-                        width: `${food.health_score || 50}%`, height: '100%', 
+                        width: `${food.health_score || 50}%`, 
+                        height: '100%', 
                         backgroundColor: getHealthColor(food.diabetic_rating),
-                        transition: 'width 0.3s ease'
+                        transition: 'width 0.3s ease',
+                        borderRadius: '8px'
                       }}></div>
                     </div>
-                    <div style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
+                    <div style={{ 
+                      marginTop: '8px', 
+                      fontSize: window.innerWidth < 768 ? '14px' : '12px', 
+                      color: '#333',
+                      fontWeight: 'bold',
+                      textAlign: 'center'
+                    }}>
                       Health Score: {food.health_score || 50}/100
                     </div>
                   </div>
@@ -728,19 +768,32 @@ function Dashboard() {
                     <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '12px', color: '#666' }}>{food.data_source}</span>
                       <button
-                        onClick={() => saveAIFood(food)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          saveAIFood(food);
+                        }}
                         disabled={saveStatus[foodKey] === 'saving' || saveStatus[foodKey] === 'saved'}
                         style={{
-                          padding: '8px 16px', fontSize: '14px', border: 'none', borderRadius: '6px',
+                          padding: window.innerWidth < 768 ? '10px 12px' : '8px 16px', 
+                          fontSize: window.innerWidth < 768 ? '12px' : '14px', 
+                          border: 'none', 
+                          borderRadius: '6px',
                           backgroundColor: saveStatus[foodKey] === 'saved' ? '#4CAF50' : 
                                          saveStatus[foodKey] === 'saving' ? '#ccc' : '#e74c3c',
-                          color: 'white', cursor: saveStatus[foodKey] === 'saving' ? 'not-allowed' : 'pointer',
-                          fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                          border: saveStatus[foodKey] === 'saved' ? '2px solid #2e7d32' : '2px solid #c62828'
+                          color: 'white', 
+                          cursor: saveStatus[foodKey] === 'saving' ? 'not-allowed' : 'pointer',
+                          fontWeight: 'bold', 
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          border: saveStatus[foodKey] === 'saved' ? '2px solid #2e7d32' : '2px solid #c62828',
+                          width: '100%',
+                          maxWidth: '200px',
+                          margin: '0 auto',
+                          display: 'block'
                         }}
                       >
-                        {saveStatus[foodKey] === 'saved' ? '✅ SAVED TO DATABASE' : 
-                         saveStatus[foodKey] === 'saving' ? '🔄 SAVING...' : '💾 SAVE TO DATABASE'}
+                        {saveStatus[foodKey] === 'saved' ? '✅ SAVED' : 
+                         saveStatus[foodKey] === 'saving' ? '🔄 SAVING...' : '💾 SAVE TO DB'}
                       </button>
                     </div>
                   </div>
