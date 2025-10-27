@@ -34,8 +34,22 @@ app.post('/smart-search', async (req, res) => {
 
     console.log(`🔍 Smart search requested: ${foodName} (${cuisineType})`);
     
-    // For now, return a sample food with speedometer data
-    const sampleFood = {
+    // Check if food already exists
+    const existingFood = await pool.query(
+      'SELECT * FROM food_nutrition WHERE LOWER(food_name) = LOWER($1)',
+      [foodName]
+    );
+
+    if (existingFood.rows.length > 0) {
+      return res.json({
+        success: true,
+        message: `Food "${foodName}" found in database`,
+        food: existingFood.rows[0]
+      });
+    }
+
+    // Create new food with speedometer data
+    const newFood = {
       food_name: foodName,
       calories: 250.5,
       protein_g: 8.2,
@@ -43,16 +57,37 @@ app.post('/smart-search', async (req, res) => {
       carbs_g: 35.0,
       diabetic_rating: 'yellow',
       health_score: 65,
-      country: 'India',
+      country: 'International',
       cuisine_type: cuisineType,
-      data_source: 'Smart Search',
-      created_at: new Date().toISOString()
+      data_source: 'Smart Search'
     };
+
+    // Insert into database
+    const result = await pool.query(
+      `INSERT INTO food_nutrition 
+       (food_name, food_name_lower, calories, protein_g, fat_g, carbs_g, 
+        diabetic_rating, health_score, country, cuisine_type, data_source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING *`,
+      [
+        newFood.food_name,
+        newFood.food_name.toLowerCase(),
+        newFood.calories,
+        newFood.protein_g,
+        newFood.fat_g,
+        newFood.carbs_g,
+        newFood.diabetic_rating,
+        newFood.health_score,
+        newFood.country,
+        newFood.cuisine_type,
+        newFood.data_source
+      ]
+    );
     
     res.json({
       success: true,
-      message: `Food "${foodName}" found with speedometer analysis`,
-      food: sampleFood
+      message: `Food "${foodName}" added to database with speedometer analysis`,
+      food: result.rows[0]
     });
   } catch (error) {
     console.error('Smart search error:', error);
