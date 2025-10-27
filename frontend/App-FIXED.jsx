@@ -450,40 +450,45 @@ function Dashboard() {
       
       {/* TITLE */}
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h1 style={{ color: '#4CAF50', margin: 0, fontSize: '48px', fontWeight: 'bold' }}>🍎 HOMA FOODS</h1>
-        <p style={{ color: '#666', margin: '10px 0 0 0', fontSize: '20px' }}>Dr. Nehru's Nutrition Database • 760+ Foods • Smart Search • AI Analysis</p>
+        <h1 style={{ 
+          color: '#e74c3c', 
+          margin: 0, 
+          fontSize: '56px', 
+          fontWeight: 'bold',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+          fontFamily: 'Arial, sans-serif'
+        }}>
+          HOMA FOODS
+        </h1>
+        <h2 style={{ 
+          color: '#2c3e50', 
+          margin: '5px 0 0 0', 
+          fontSize: '24px', 
+          fontWeight: '600',
+          textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
+        }}>
+          Dr. Nehru's Nutrition Database
+        </h2>
+        <p style={{ color: '#666', margin: '10px 0 0 0', fontSize: '18px' }}>
+          760+ Foods • Smart Search • AI Analysis • Cross-verified Data
+        </p>
       </div>
 
-      {/* SIGN UP AND LOGIN COMPONENTS */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
-        <button 
-          onClick={() => navigate('/signup')}
-          style={{
-            backgroundColor: '#4CAF50', color: 'white', border: 'none', padding: '12px 24px',
-            borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer'
-          }}
-        >
-          ✅ Sign Up
-        </button>
-        <button 
-          onClick={() => navigate('/login')}
-          style={{
-            backgroundColor: '#2196F3', color: 'white', border: 'none', padding: '12px 24px',
-            borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer'
-          }}
-        >
-          🔐 Login
-        </button>
-        <button 
-          onClick={handleLogout}
-          style={{
-            backgroundColor: '#f44336', color: 'white', border: 'none', padding: '12px 24px',
-            borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer'
-          }}
-        >
-          🚪 Logout
-        </button>
-      </div>
+      {/* LOGOUT BUTTON - Only show when logged in */}
+      {isLoggedIn && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
+          <button 
+            onClick={handleLogout}
+            style={{
+              backgroundColor: '#f44336', color: 'white', border: 'none', padding: '12px 24px',
+              borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >
+            🚪 Logout
+          </button>
+        </div>
+      )}
 
       {/* SEARCH BOX */}
       <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
@@ -657,6 +662,18 @@ function Dashboard() {
         {/* AI SEARCH RESULTS */}
         <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
           <h3 style={{ color: '#9C27B0', marginBottom: '15px', textAlign: 'center' }}>🤖 AI Search</h3>
+          <div style={{ 
+            backgroundColor: '#e8f5e8', 
+            padding: '10px', 
+            borderRadius: '8px', 
+            marginBottom: '15px',
+            border: '2px solid #4CAF50',
+            textAlign: 'center'
+          }}>
+            <p style={{ margin: 0, color: '#2e7d32', fontWeight: 'bold', fontSize: '14px' }}>
+              💾 SAVE AI RESULTS TO YOUR DATABASE - Click "Save" to add foods permanently!
+            </p>
+          </div>
           {aiResults.length > 0 ? (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {aiResults.map((food, index) => {
@@ -679,14 +696,16 @@ function Dashboard() {
                         onClick={() => saveAIFood(food)}
                         disabled={saveStatus[foodKey] === 'saving' || saveStatus[foodKey] === 'saved'}
                         style={{
-                          padding: '5px 10px', fontSize: '12px', border: 'none', borderRadius: '4px',
+                          padding: '8px 16px', fontSize: '14px', border: 'none', borderRadius: '6px',
                           backgroundColor: saveStatus[foodKey] === 'saved' ? '#4CAF50' : 
-                                         saveStatus[foodKey] === 'saving' ? '#ccc' : '#9C27B0',
-                          color: 'white', cursor: saveStatus[foodKey] === 'saving' ? 'not-allowed' : 'pointer'
+                                         saveStatus[foodKey] === 'saving' ? '#ccc' : '#e74c3c',
+                          color: 'white', cursor: saveStatus[foodKey] === 'saving' ? 'not-allowed' : 'pointer',
+                          fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          border: saveStatus[foodKey] === 'saved' ? '2px solid #2e7d32' : '2px solid #c62828'
                         }}
                       >
-                        {saveStatus[foodKey] === 'saved' ? '✅ Saved' : 
-                         saveStatus[foodKey] === 'saving' ? '🔄 Saving...' : '💾 Save'}
+                        {saveStatus[foodKey] === 'saved' ? '✅ SAVED TO DATABASE' : 
+                         saveStatus[foodKey] === 'saving' ? '🔄 SAVING...' : '💾 SAVE TO DATABASE'}
                       </button>
                     </div>
                   </div>
