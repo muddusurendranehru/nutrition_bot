@@ -446,7 +446,13 @@ function Dashboard() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+    <div style={{ 
+      padding: '20px', 
+      maxWidth: '1200px', 
+      margin: '0 auto', 
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+      minHeight: '100vh' 
+    }}>
       
       {/* TITLE */}
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
@@ -491,7 +497,15 @@ function Dashboard() {
       )}
 
       {/* SEARCH BOX */}
-      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
+      <div style={{ 
+        backgroundColor: 'rgba(255,255,255,0.95)', 
+        backdropFilter: 'blur(10px)',
+        padding: '30px', 
+        borderRadius: '15px', 
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)', 
+        marginBottom: '20px',
+        border: '1px solid rgba(255,255,255,0.2)'
+      }}>
         <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
           <input 
             type="text" 
@@ -568,7 +582,14 @@ function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px', marginBottom: '30px' }}>
         
         {/* SEARCH RESULTS */}
-        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+        <div style={{ 
+          backgroundColor: 'rgba(255,255,255,0.95)', 
+          backdropFilter: 'blur(10px)',
+          padding: '20px', 
+          borderRadius: '15px', 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          border: '1px solid rgba(255,255,255,0.2)'
+        }}>
           <h3 style={{ color: '#2196F3', marginBottom: '15px', textAlign: 'center' }}>🔍 Search Results</h3>
           {databaseResults.length > 0 ? (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -605,7 +626,14 @@ function Dashboard() {
         </div>
 
         {/* SMART SEARCH RESULTS */}
-        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+        <div style={{ 
+          backgroundColor: 'rgba(255,255,255,0.95)', 
+          backdropFilter: 'blur(10px)',
+          padding: '20px', 
+          borderRadius: '15px', 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          border: '1px solid rgba(255,255,255,0.2)'
+        }}>
           <h3 style={{ color: '#4CAF50', marginBottom: '15px', textAlign: 'center' }}>⚡ Smart Search</h3>
           {smartResults.length > 0 ? (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -660,7 +688,14 @@ function Dashboard() {
         </div>
 
         {/* AI SEARCH RESULTS */}
-        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+        <div style={{ 
+          backgroundColor: 'rgba(255,255,255,0.95)', 
+          backdropFilter: 'blur(10px)',
+          padding: '20px', 
+          borderRadius: '15px', 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          border: '1px solid rgba(255,255,255,0.2)'
+        }}>
           <h3 style={{ color: '#9C27B0', marginBottom: '15px', textAlign: 'center' }}>🤖 AI Search</h3>
           <div style={{ 
             backgroundColor: '#e8f5e8', 
