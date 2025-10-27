@@ -118,7 +118,7 @@ router.post('/foods', async (req, res) => {
       });
     }
 
-    // Search in food_nutrition table using pg_trgm similarity
+    // Search in food_nutrition table using ILIKE
     const searchQuery = `
       SELECT 
         food_name,
@@ -133,12 +133,16 @@ router.post('/foods', async (req, res) => {
         created_at
       FROM food_nutrition 
       WHERE food_name ILIKE $1 
-         OR food_name % $2
+         OR food_name_lower ILIKE $1
+         OR $2 = ANY(alternate_names)
+         OR $2 = ANY(regional_names)
       ORDER BY 
         CASE 
           WHEN food_name ILIKE $1 THEN 1
-          ELSE similarity(food_name, $2) DESC
-        END
+          WHEN food_name_lower ILIKE $1 THEN 2
+          ELSE 3
+        END,
+        popularity_score DESC
       LIMIT 20
     `;
 
