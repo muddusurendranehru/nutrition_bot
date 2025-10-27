@@ -622,25 +622,97 @@ function Dashboard() {
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {databaseResults.map((food, index) => (
                 <div key={index} style={{ 
-                  padding: '15px', marginBottom: '10px', backgroundColor: '#f8f9fa', 
-                  borderRadius: '8px', border: '1px solid #e9ecef'
+                  padding: window.innerWidth < 768 ? '20px' : '15px', 
+                  marginBottom: '15px', 
+                  backgroundColor: '#f8f9fa', 
+                  borderRadius: '12px', 
+                  border: '2px solid #e9ecef',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                 }}>
-                  <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{food.food_name}</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
-                    <div>🔥 {food.calories} cal</div>
-                    <div>🥩 {food.protein_g}g protein</div>
-                    <div>🧈 {food.fat_g}g fat</div>
-                    <div>🍞 {food.carbs_g}g carbs</div>
+                  <h4 style={{ 
+                    margin: '0 0 15px 0', 
+                    color: '#333',
+                    fontSize: window.innerWidth < 768 ? '18px' : '16px',
+                    fontWeight: 'bold',
+                    textAlign: 'center'
+                  }}>
+                    {food.food_name}
+                  </h4>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr', 
+                    gap: '10px', 
+                    fontSize: window.innerWidth < 768 ? '16px' : '14px',
+                    marginBottom: '15px'
+                  }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#fff3cd',
+                      borderRadius: '8px',
+                      border: '1px solid #ffeaa7'
+                    }}>
+                      🔥 <span style={{ fontWeight: 'bold', color: '#856404' }}>{food.calories} calories</span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#d1ecf1',
+                      borderRadius: '8px',
+                      border: '1px solid #bee5eb'
+                    }}>
+                      💪 <span style={{ fontWeight: 'bold', color: '#0c5460' }}>{food.protein_g}g protein</span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#f8d7da',
+                      borderRadius: '8px',
+                      border: '1px solid #f5c6cb'
+                    }}>
+                      🧈 <span style={{ fontWeight: 'bold', color: '#721c24' }}>{food.fat_g}g fat</span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#d4edda',
+                      borderRadius: '8px',
+                      border: '1px solid #c3e6cb'
+                    }}>
+                      🍞 <span style={{ fontWeight: 'bold', color: '#155724' }}>{food.carbs_g}g carbs</span>
+                    </div>
                   </div>
-                  <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ 
+                    marginTop: '15px', 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                    gap: '10px'
+                  }}>
                     <span style={{ 
                       color: getHealthColor(food.diabetic_rating), 
                       fontWeight: 'bold', 
-                      fontSize: '12px' 
+                      fontSize: window.innerWidth < 768 ? '14px' : '12px',
+                      textAlign: 'center'
                     }}>
                       {getHealthText(food.diabetic_rating)}
                     </span>
-                    <span style={{ fontSize: '12px', color: '#666' }}>{food.country}</span>
+                    <span style={{ 
+                      fontSize: window.innerWidth < 768 ? '14px' : '12px', 
+                      color: '#666',
+                      textAlign: 'center'
+                    }}>
+                      {food.country}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -669,12 +741,66 @@ function Dashboard() {
                   padding: '15px', marginBottom: '10px', backgroundColor: '#f8f9fa', 
                   borderRadius: '8px', border: '1px solid #e9ecef'
                 }}>
-                  <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{food.food_name}</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
-                    <div>🔥 {food.calories} cal</div>
-                    <div>🥩 {food.protein_g}g protein</div>
-                    <div>🧈 {food.fat_g}g fat</div>
-                    <div>🍞 {food.carbs_g}g carbs</div>
+                  <h4 style={{ 
+                    margin: '0 0 15px 0', 
+                    color: '#333',
+                    fontSize: window.innerWidth < 768 ? '18px' : '16px',
+                    fontWeight: 'bold',
+                    textAlign: 'center'
+                  }}>
+                    {food.food_name}
+                  </h4>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: window.innerWidth < 768 ? '1fr' : '1fr 1fr', 
+                    gap: '10px', 
+                    fontSize: window.innerWidth < 768 ? '16px' : '14px',
+                    marginBottom: '15px'
+                  }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#fff3cd',
+                      borderRadius: '8px',
+                      border: '1px solid #ffeaa7'
+                    }}>
+                      🔥 <span style={{ fontWeight: 'bold', color: '#856404' }}>{food.calories} calories</span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#d1ecf1',
+                      borderRadius: '8px',
+                      border: '1px solid #bee5eb'
+                    }}>
+                      💪 <span style={{ fontWeight: 'bold', color: '#0c5460' }}>{food.protein_g}g protein</span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#f8d7da',
+                      borderRadius: '8px',
+                      border: '1px solid #f5c6cb'
+                    }}>
+                      🧈 <span style={{ fontWeight: 'bold', color: '#721c24' }}>{food.fat_g}g fat</span>
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '10px',
+                      padding: '10px',
+                      backgroundColor: '#d4edda',
+                      borderRadius: '8px',
+                      border: '1px solid #c3e6cb'
+                    }}>
+                      🍞 <span style={{ fontWeight: 'bold', color: '#155724' }}>{food.carbs_g}g carbs</span>
+                    </div>
                   </div>
                   
                   {/* SPEEDOMETER */}
