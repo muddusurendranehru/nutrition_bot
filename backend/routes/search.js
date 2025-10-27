@@ -309,4 +309,58 @@ router.post('/ai-search', async (req, res) => {
   }
 });
 
+// POST /api/search/save-ai-result - Save AI search result to database
+router.post('/save-ai-result', async (req, res) => {
+  try {
+    const { foodData } = req.body;
+    
+    if (!foodData || !foodData.food_name) {
+      return res.json({
+        success: false, 
+        error: 'Food data is required' 
+      });
+    }
+
+    console.log(`💾 Saving AI result to database: ${foodData.food_name}`);
+
+    // Insert into food_nutrition table
+    const result = await pool.query(
+      `INSERT INTO food_nutrition 
+       (food_name, food_name_lower, calories, protein_g, fat_g, carbs_g, 
+        diabetic_rating, health_score, country, cuisine_type, data_source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING id, food_name, calories, protein_g, fat_g, carbs_g, 
+                 diabetic_rating, health_score, country, data_source, created_at`,
+      [
+        foodData.food_name,
+        foodData.food_name.toLowerCase(),
+        foodData.calories || 0,
+        foodData.protein_g || 0,
+        foodData.fat_g || 0,
+        foodData.carbs_g || 0,
+        foodData.diabetic_rating || 'yellow',
+        foodData.health_score || 50,
+        foodData.country || 'International',
+        foodData.cuisine_type || 'Various',
+        'AI Saved: ' + (foodData.data_source || 'OpenAI Analysis')
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: `"${foodData.food_name}" saved to database successfully!`,
+      food: result.rows[0],
+      database_growth: true
+    });
+
+  } catch (error) {
+    console.error('Save AI result error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save AI result to database',
+      message: error.message
+    });
+  }
+});
+
 export default router;
