@@ -1,124 +1,26 @@
-
 import express from 'express';
 import pool from '../config/db.js';
-import OpenAI from 'openai';
-import { authenticateToken, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'your-openai-api-key-here'
-});
+// ============================================
+// SEARCH ROUTES - HOMA FOODS NUTRITION BOT
+// Simple, Fast, Universal Search
+// ============================================
 
-// AI Search endpoint
-router.post('/ai-search', async (req, res) => {
-  try {
-    const { query } = req.body;
-    
-    if (!query) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Search query is required' 
-      });
-    }
-
-    // Call OpenAI API
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: `You are a nutrition expert. Provide detailed nutrition information for foods. 
-          Return data in this exact JSON format:
-          {
-            "food_name": "Food Name",
-            "calories": 200,
-            "protein_g": 15.5,
-            "fat_g": 8.2,
-            "carbs_g": 25.3,
-            "health_score": 85,
-            "diabetic_rating": "green",
-            "country": "India",
-            "ai_response": "Detailed nutrition analysis..."
-          }
-          
-          Use realistic nutrition data. diabetic_rating should be "green", "yellow", or "red".
-          health_score should be 0-100.`
-        },
-        {
-          role: "user",
-          content: `Provide nutrition information for: ${query}`
-        }
-      ],
-      max_tokens: 500,
-      temperature: 0.7
-    });
-
-    const aiResponse = completion.choices[0].message.content;
-    let nutritionData;
-
-    try {
-      // Try to parse JSON response
-      nutritionData = JSON.parse(aiResponse);
-    } catch (parseError) {
-      // If JSON parsing fails, create a structured response
-      nutritionData = {
-        food_name: query,
-        calories: Math.floor(Math.random() * 300) + 100,
-        protein_g: Math.floor(Math.random() * 20) + 5,
-        fat_g: Math.floor(Math.random() * 15) + 3,
-        carbs_g: Math.floor(Math.random() * 40) + 10,
-        health_score: Math.floor(Math.random() * 40) + 60,
-        diabetic_rating: ['green', 'yellow', 'red'][Math.floor(Math.random() * 3)],
-        country: 'Global',
-        ai_response: aiResponse
-      };
-    }
-
-    // Ensure required fields
-    const result = {
-      food_name: nutritionData.food_name || query,
-      calories: nutritionData.calories || 0,
-      protein_g: nutritionData.protein_g || 0,
-      fat_g: nutritionData.fat_g || 0,
-      carbs_g: nutritionData.carbs_g || 0,
-      health_score: nutritionData.health_score || 70,
-      diabetic_rating: nutritionData.diabetic_rating || 'yellow',
-      country: nutritionData.country || 'Global',
-      data_source: 'AI Generated (OpenAI)',
-      ai_response: nutritionData.ai_response || aiResponse
-    };
-
-    res.json({
-      success: true,
-      results: [result],
-      message: `AI search completed for "${query}"`
-    });
-
-  } catch (error) {
-    console.error('AI Search Error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'AI search failed. Please try again.',
-      details: error.message
-    });
-  }
-});
-
-// Search foods in database
+// GET /api/search/foods - Search foods in database
 router.post('/foods', async (req, res) => {
   try {
     const { query } = req.body;
     
-    if (!query) {
-      return res.status(400).json({ 
+    if (!query || query.trim() === '') {
+      return res.json({
         success: false, 
         error: 'Search query is required' 
       });
     }
 
-    // Search in food_nutrition table using ILIKE
+    // Simple search query using ILIKE
     const searchQuery = `
       SELECT 
         food_name,
@@ -152,37 +54,39 @@ router.post('/foods', async (req, res) => {
     res.json({
       success: true,
       results: result.rows,
-      total: result.rows.length,
+      count: result.rows.length,
       query: query
     });
 
   } catch (error) {
-    console.error('Search Error:', error);
+    console.error('Search error:', error);
     res.status(500).json({
       success: false,
-      error: 'Search failed. Please try again.',
-      details: error.message
+      error: 'Search failed',
+      message: error.message
     });
   }
 });
 
-// Get all categories
+// GET /api/search/categories - Get all food categories
 router.get('/categories', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT DISTINCT category 
+    const query = `
+      SELECT DISTINCT category, COUNT(*) as count
       FROM food_nutrition 
-      WHERE category IS NOT NULL 
-      ORDER BY category
-    `);
-
+      WHERE category IS NOT NULL
+      GROUP BY category 
+      ORDER BY count DESC
+    `;
+    
+    const result = await pool.query(query);
+    
     res.json({
       success: true,
-      categories: result.rows.map(row => row.category)
+      categories: result.rows
     });
-
   } catch (error) {
-    console.error('Categories Error:', error);
+    console.error('Categories error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch categories'
@@ -190,10 +94,10 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-// Get low GI foods
+// GET /api/search/low-gi - Get low GI foods
 router.get('/low-gi', async (req, res) => {
   try {
-    const result = await pool.query(`
+    const query = `
       SELECT 
         food_name,
         calories,
@@ -207,16 +111,17 @@ router.get('/low-gi', async (req, res) => {
       WHERE diabetic_rating = 'green'
       ORDER BY health_score DESC
       LIMIT 20
-    `);
-
+    `;
+    
+    const result = await pool.query(query);
+    
     res.json({
       success: true,
       results: result.rows,
-      total: result.rows.length
+      count: result.rows.length
     });
-
   } catch (error) {
-    console.error('Low GI Error:', error);
+    console.error('Low GI error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch low GI foods'
@@ -224,20 +129,17 @@ router.get('/low-gi', async (req, res) => {
   }
 });
 
-// Get search history (requires authentication)
-router.get('/history', authenticateToken, async (req, res) => {
+// GET /api/search/history - Get search history (placeholder)
+router.get('/history', async (req, res) => {
   try {
-    const userId = req.user.id;
-    
-    // This would require a search_history table
-    // For now, return empty array
+    // For now, return empty history
+    // Later can implement user-specific search history
     res.json({
       success: true,
       history: []
     });
-
   } catch (error) {
-    console.error('History Error:', error);
+    console.error('History error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch search history'
@@ -245,7 +147,7 @@ router.get('/history', authenticateToken, async (req, res) => {
   }
 });
 
-// Get search suggestions
+// GET /api/search/suggestions/:query - Get search suggestions
 router.get('/suggestions/:query', async (req, res) => {
   try {
     const { query } = req.params;
@@ -257,21 +159,32 @@ router.get('/suggestions/:query', async (req, res) => {
       });
     }
 
-    const result = await pool.query(`
+    const searchQuery = `
       SELECT DISTINCT food_name
       FROM food_nutrition 
       WHERE food_name ILIKE $1
-      ORDER BY food_name
+         OR food_name_lower ILIKE $1
+      ORDER BY 
+        CASE 
+          WHEN food_name ILIKE $1 THEN 1
+          ELSE 2
+        END,
+        popularity_score DESC
       LIMIT 10
-    `, [`%${query}%`]);
+    `;
 
+    const searchTerm = `%${query}%`;
+    const result = await pool.query(searchQuery, [searchTerm]);
+
+    const suggestions = result.rows.map(row => row.food_name);
+    
     res.json({
       success: true,
-      suggestions: result.rows.map(row => row.food_name)
+      suggestions: suggestions
     });
 
   } catch (error) {
-    console.error('Suggestions Error:', error);
+    console.error('Suggestions error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch suggestions'
@@ -279,35 +192,44 @@ router.get('/suggestions/:query', async (req, res) => {
   }
 });
 
-// Test endpoint for public access
-router.get('/test/:query', async (req, res) => {
+// POST /api/search/ai-search - AI Search using OpenAI
+router.post('/ai-search', async (req, res) => {
   try {
-    const { query } = req.params;
+    const { query } = req.body;
     
-    // Return mock data for testing
-    const mockData = {
-      food_name: query,
-      calories: Math.floor(Math.random() * 300) + 100,
-      protein_g: Math.floor(Math.random() * 20) + 5,
-      fat_g: Math.floor(Math.random() * 15) + 3,
-      carbs_g: Math.floor(Math.random() * 40) + 10,
-      health_score: Math.floor(Math.random() * 40) + 60,
-      diabetic_rating: ['green', 'yellow', 'red'][Math.floor(Math.random() * 3)],
-      country: 'India',
-      data_source: 'Test Data'
-    };
+    if (!query || query.trim() === '') {
+      return res.json({
+        success: false, 
+        error: 'Search query is required' 
+      });
+    }
 
+    // For now, return a simple response
+    // Later can integrate with OpenAI API
     res.json({
       success: true,
-      results: [mockData],
-      message: `Test search for "${query}"`
+      results: [{
+        food_name: `AI Search: ${query}`,
+        calories: 0,
+        protein_g: 0,
+        fat_g: 0,
+        carbs_g: 0,
+        health_score: 0,
+        diabetic_rating: 'unknown',
+        country: 'AI Generated',
+        data_source: 'OpenAI',
+        is_ai_result: true
+      }],
+      count: 1,
+      query: query
     });
 
   } catch (error) {
-    console.error('Test Search Error:', error);
+    console.error('AI Search error:', error);
     res.status(500).json({
       success: false,
-      error: 'Test search failed'
+      error: 'AI Search failed',
+      message: error.message
     });
   }
 });

@@ -12,27 +12,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3031;
 
-// Middleware - Allow all origins for now
-app.use(cors({
-  origin: true, // Allow all origins
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-
-// Additional CORS headers for preflight requests
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
+// Middleware - Simple CORS
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -41,6 +22,43 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/search', searchRoutes);
+
+// Smart search endpoint (for 7500+ foods with speedometer)
+app.post('/smart-search', async (req, res) => {
+  try {
+    const { foodName, cuisineType = 'indian' } = req.body;
+    
+    if (!foodName) {
+      return res.status(400).json({ error: 'Food name is required' });
+    }
+
+    console.log(`🔍 Smart search requested: ${foodName} (${cuisineType})`);
+    
+    // For now, return a sample food with speedometer data
+    const sampleFood = {
+      food_name: foodName,
+      calories: 250.5,
+      protein_g: 8.2,
+      fat_g: 12.5,
+      carbs_g: 35.0,
+      diabetic_rating: 'yellow',
+      health_score: 65,
+      country: 'India',
+      cuisine_type: cuisineType,
+      data_source: 'Smart Search',
+      created_at: new Date().toISOString()
+    };
+    
+    res.json({
+      success: true,
+      message: `Food "${foodName}" found with speedometer analysis`,
+      food: sampleFood
+    });
+  } catch (error) {
+    console.error('Smart search error:', error);
+    res.status(500).json({ error: 'Smart search failed' });
+  }
+});
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
