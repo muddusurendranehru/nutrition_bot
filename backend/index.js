@@ -12,17 +12,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3031;
 
-// Middleware
+// Middleware - Allow all origins for now
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://nutrition-bot-frontend.onrender.com',
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json());
