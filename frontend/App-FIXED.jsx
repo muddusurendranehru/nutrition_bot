@@ -347,7 +347,7 @@ function Dashboard() {
     }
   };
 
-  // Smart Search (Your growing database) - With speedometer
+  // Smart Search (Your growing database) - Search existing database only
   const searchSmartLocal = async () => {
     if (!searchQuery.trim()) return;
     setLoading(prev => ({ ...prev, smart: true }));
@@ -356,15 +356,16 @@ function Dashboard() {
 
     try {
       const results = await searchSmart(searchQuery);
-      if (results.success && results.food) {
-        setSmartResults([results.food]);
-        setSuccessMessage(`⚡ Smart Search found "${results.food.food_name}" with speedometer analysis`);
+      if (results.success && results.foods && results.foods.length > 0) {
+        setSmartResults(results.foods);
+        setSuccessMessage(`⚡ Smart Search found ${results.foods.length} foods in your database`);
       } else {
         setSmartResults([]);
-        setError('Smart search failed. Please try again.');
+        setError(results.message || 'No foods found in database. Try AI Search to add new foods.');
       }
     } catch (err) {
       setError('Smart search failed. Please try again.');
+      setSmartResults([]);
     } finally {
       setLoading(prev => ({ ...prev, smart: false }));
     }
@@ -483,7 +484,7 @@ function Dashboard() {
           fontSize: window.innerWidth < 768 ? '14px' : '18px',
           padding: '0 10px'
         }}>
-          760+ Foods • Smart Search • AI Analysis • Cross-verified Data
+          3 Lakh Foods • 1 Lakh Followers • Smart Search • AI Analysis • Cross-verified Data
         </p>
       </div>
 

@@ -23,72 +23,57 @@ app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/search', searchRoutes);
 
-// Smart search endpoint (for 7500+ foods with speedometer)
+// Smart search endpoint (search existing database only)
 app.post('/api/smart-search', async (req, res) => {
   try {
-    const { foodName, cuisineType = 'indian' } = req.body;
+    const { foodName } = req.body;
     
     if (!foodName) {
       return res.status(400).json({ error: 'Food name is required' });
     }
 
-    console.log(`🔍 Smart search requested: ${foodName} (${cuisineType})`);
-    
-    // Check if food already exists
-    const existingFood = await pool.query(
-      'SELECT * FROM food_nutrition WHERE LOWER(food_name) = LOWER($1)',
-      [foodName]
-    );
+    console.log(`🔍 Smart search requested: ${foodName}`);
 
-    if (existingFood.rows.length > 0) {
-      return res.json({
+    // Search for foods that contain the search term
+    const searchQuery = `
+      SELECT * FROM food_nutrition 
+      WHERE food_name_lower ILIKE $1
+         OR food_name ILIKE $1
+         OR EXISTS (
+           SELECT 1 FROM unnest(regional_names) AS rn 
+           WHERE LOWER(rn) ILIKE $1
+         )
+         OR EXISTS (
+           SELECT 1 FROM unnest(alternate_names) AS an 
+           WHERE LOWER(an) ILIKE $1
+         )
+      ORDER BY 
+        CASE 
+          WHEN food_name_lower ILIKE $2 THEN 1
+          WHEN food_name ILIKE $2 THEN 2
+          ELSE 3
+        END,
+        health_score DESC
+      LIMIT 10
+    `;
+
+    const searchTerm = `%${foodName}%`;
+    const startsWithTerm = `${foodName}%`;
+    const result = await pool.query(searchQuery, [searchTerm, startsWithTerm]);
+
+    if (result.rows.length > 0) {
+      res.json({
         success: true,
-        message: `Food "${foodName}" found in database`,
-        food: existingFood.rows[0]
+        message: `Found ${result.rows.length} foods in database`,
+        foods: result.rows
+      });
+    } else {
+      res.json({
+        success: false,
+        message: `No foods found for "${foodName}" in database. Try AI Search to add new foods.`,
+        foods: []
       });
     }
-
-    // Create new food with speedometer data
-    const newFood = {
-      food_name: foodName,
-      calories: 250.5,
-      protein_g: 8.2,
-      fat_g: 12.5,
-      carbs_g: 35.0,
-      diabetic_rating: 'yellow',
-      health_score: 65,
-      country: 'International',
-      cuisine_type: cuisineType,
-      data_source: 'Smart Search'
-    };
-
-    // Insert into database
-    const result = await pool.query(
-      `INSERT INTO food_nutrition 
-       (food_name, food_name_lower, calories, protein_g, fat_g, carbs_g, 
-        diabetic_rating, health_score, country, cuisine_type, data_source)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING *`,
-      [
-        newFood.food_name,
-        newFood.food_name.toLowerCase(),
-        newFood.calories,
-        newFood.protein_g,
-        newFood.fat_g,
-        newFood.carbs_g,
-        newFood.diabetic_rating,
-        newFood.health_score,
-        newFood.country,
-        newFood.cuisine_type,
-        newFood.data_source
-      ]
-    );
-    
-    res.json({
-      success: true,
-      message: `Food "${foodName}" added to database with speedometer analysis`,
-      food: result.rows[0]
-    });
   } catch (error) {
     console.error('Smart search error:', error);
     res.status(500).json({ error: 'Smart search failed' });
