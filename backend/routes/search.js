@@ -161,29 +161,19 @@ router.get('/suggestions/:query', async (req, res) => {
 
     console.log(`💡 Getting suggestions for: "${query}"`);
 
-    // Search for foods that start with or contain the query
+    // Simple search for foods that contain the query
     const searchQuery = `
       SELECT DISTINCT food_name, calories, diabetic_rating, health_score, country
       FROM food_nutrition 
       WHERE food_name_lower ILIKE $1
-         OR food_name ILIKE $1
-         OR EXISTS (
-           SELECT 1 FROM unnest(regional_names) AS rn 
-           WHERE LOWER(rn) ILIKE $1
-         )
-         OR EXISTS (
-           SELECT 1 FROM unnest(alternate_names) AS an 
-           WHERE LOWER(an) ILIKE $1
-         )
       ORDER BY 
         CASE 
           WHEN food_name_lower ILIKE $2 THEN 1
-          WHEN food_name ILIKE $2 THEN 2
-          ELSE 3
+          ELSE 2
         END,
-        popularity_score DESC,
+        LENGTH(food_name) ASC,
         health_score DESC
-      LIMIT 8
+      LIMIT 10
     `;
 
     const searchTerm = `%${query}%`;
@@ -197,7 +187,7 @@ router.get('/suggestions/:query', async (req, res) => {
       health_score: row.health_score,
       country: row.country
     }));
-
+    
     res.json({
       success: true,
       suggestions: suggestions,
@@ -209,7 +199,8 @@ router.get('/suggestions/:query', async (req, res) => {
     console.error('Suggestions error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch suggestions'
+      error: 'Failed to fetch suggestions',
+      message: error.message
     });
   }
 });
