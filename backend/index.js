@@ -24,7 +24,7 @@ app.use('/api/data', dataRoutes);
 app.use('/api/search', searchRoutes);
 
 // Smart search endpoint (for 7500+ foods with speedometer)
-app.post('/smart-search', async (req, res) => {
+app.post('/api/smart-search', async (req, res) => {
   try {
     const { foodName, cuisineType = 'indian' } = req.body;
     
