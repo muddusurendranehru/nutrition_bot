@@ -42,72 +42,57 @@ const logout = async () => {
   localStorage.removeItem('token');
 };
 
-// Search functions
+// Search functions - CORRECT ENDPOINTS
 const searchDatabase = async (query) => {
   try {
     const response = await api.post('/search/foods', { query });
     return response.data;
   } catch (error) {
-    // Fallback to public search
-    const response = await axios.get(`${API_BASE_URL}/search/test/${encodeURIComponent(query)}`);
+    console.error('Search error:', error);
+    throw error;
+  }
+};
+
+const searchSmart = async (query) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/smart-search`, { 
+      foodName: query, 
+      cuisineType: detectCuisineType(query) 
+    });
     return response.data;
+  } catch (error) {
+    console.error('Smart search error:', error);
+    throw error;
   }
 };
 
 const searchWithAI = async (query) => {
-  const response = await api.post('/search/ai-search', { query });
-  return response.data;
+  try {
+    const response = await api.post('/search/ai-search', { query });
+    return response.data;
+  } catch (error) {
+    console.error('AI search error:', error);
+    throw error;
+  }
 };
 
-const saveAIFood = async (foodData) => {
-  const response = await api.post('/data', {
-    food_name: foodData.food_name,
-    calories: foodData.calories,
-    protein_g: foodData.protein_g,
-    fat_g: foodData.fat_g,
-    carbs_g: foodData.carbs_g,
-    data_source: 'AI Generated (OpenAI)',
-    ai_response: foodData.ai_response
-  });
-  return response.data;
+const detectCuisineType = (foodName) => {
+  const name = foodName.toLowerCase();
+  if (name.includes('biryani') || name.includes('curry') || name.includes('dal') || name.includes('idli') || name.includes('dosa')) return 'indian';
+  if (name.includes('chicken 65') || name.includes('fried rice') || name.includes('noodles')) return 'chinese';
+  if (name.includes('pizza') || name.includes('pasta') || name.includes('risotto')) return 'italian';
+  if (name.includes('burger') || name.includes('sandwich') || name.includes('hot dog')) return 'american';
+  if (name.includes('sushi') || name.includes('ramen') || name.includes('tempura')) return 'japanese';
+  return 'indian'; // Default
 };
-
-// ============================================
-// SPEEDOMETER COMPONENT
-// ============================================
-function Speedometer({ value, min, max, label, color, size = 120 }) {
-  const percentage = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
-  const angle = (percentage / 100) * 180;
-  
-  return (
-    <div style={{ textAlign: 'center', margin: '10px' }}>
-      <div style={{ fontSize: '14px', marginBottom: '10px', fontWeight: 'bold', color: '#333' }}>{label}</div>
-      <svg width={size} height={size/2} viewBox={`0 0 ${size} ${size/2}`}>
-        <path d={`M ${size*0.15} ${size*0.4} A ${size*0.3} ${size*0.3} 0 0 1 ${size*0.85} ${size*0.4}`} 
-              stroke="#e9ecef" strokeWidth="8" fill="none"/>
-        <path d={`M ${size*0.15} ${size*0.4} A ${size*0.3} ${size*0.3} 0 0 1 ${size*0.85} ${size*0.4}`} 
-              stroke={color} strokeWidth="8" fill="none"
-              strokeDasharray={`${(angle/180) * (size*0.7)} ${size*0.7}`} strokeDashoffset="0"/>
-        <line x1={size/2} y1={size*0.4} 
-              x2={size/2 + (size*0.25) * Math.cos((angle - 90) * Math.PI / 180)} 
-              y2={size*0.4 - (size*0.25) * Math.sin((angle - 90) * Math.PI / 180)} 
-              stroke="#333" strokeWidth="3"/>
-        <circle cx={size/2} cy={size*0.4} r="4" fill="#333"/>
-      </svg>
-      <div style={{ fontSize: '16px', fontWeight: 'bold', color, marginTop: '8px' }}>
-        {value.toFixed(1)}
-      </div>
-    </div>
-  );
-}
 
 // ============================================
 // SIGNUP COMPONENT
 // ============================================
-function SignUp() {
+function Signup() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '', password: '', confirmPassword: '', name: '', phone: ''
+  const [formData, setFormData] = useState({ 
+    email: '', password: '', confirmPassword: '', name: '', phone: '' 
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -129,10 +114,12 @@ function SignUp() {
 
     try {
       const response = await signup(
-        formData.email, formData.password, formData.confirmPassword,
-        formData.name, formData.phone
+        formData.email, 
+        formData.password, 
+        formData.confirmPassword, 
+        formData.name, 
+        formData.phone
       );
-
       if (response.success) {
         localStorage.setItem('token', response.token);
         navigate('/dashboard');
@@ -148,14 +135,13 @@ function SignUp() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
     }}>
       <div style={{
         background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)',
         padding: '40px', borderRadius: '20px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-        width: '100%', maxWidth: '400px'
+        width: '100%', maxWidth: '500px'
       }}>
         <h1 style={{ textAlign: 'center', color: '#4CAF50', marginBottom: '30px', fontSize: '2.5em' }}>
           🍎 Nutribot
@@ -164,34 +150,32 @@ function SignUp() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Email *</label>
+            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Email</label>
             <input type="email" name="email" value={formData.email} onChange={handleChange} required
               style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px', outline: 'none' }} />
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Password *</label>
+            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Name (Optional)</label>
+            <input type="text" name="name" value={formData.name} onChange={handleChange}
+              style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px', outline: 'none' }} />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Phone (Optional)</label>
+            <input type="text" name="phone" value={formData.phone} onChange={handleChange}
+              style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px', outline: 'none' }} />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Password</label>
             <input type="password" name="password" value={formData.password} onChange={handleChange} required
               style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px', outline: 'none' }} />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Confirm Password *</label>
-            <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required
-              style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px', outline: 'none' }} />
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Name (Universal)</label>
-            <input type="text" name="name" value={formData.name} onChange={handleChange}
-              placeholder="Lakshmi, Lakshmi Galla, lakshmi_galla - any format"
-              style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px', outline: 'none' }} />
-          </div>
-
           <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Phone (Universal)</label>
-            <input type="text" name="phone" value={formData.phone} onChange={handleChange}
-              placeholder="+91, +1, 996, any format, any length"
+            <label style={{ display: 'block', marginBottom: '5px', color: '#333', fontWeight: 'bold' }}>Confirm Password</label>
+            <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required
               style={{ width: '100%', padding: '12px', border: '2px solid #ddd', borderRadius: '8px', fontSize: '16px', outline: 'none' }} />
           </div>
 
@@ -311,93 +295,128 @@ function Login() {
 }
 
 // ============================================
-// DASHBOARD COMPONENT - PERFECT LAYOUT
+// DASHBOARD COMPONENT - MAIN APP
 // ============================================
 function Dashboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState({ database: false, smart: false, ai: false });
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // Three separate result sets
+  const [databaseResults, setDatabaseResults] = useState([]);
+  const [smartResults, setSmartResults] = useState([]);
+  const [aiResults, setAiResults] = useState([]);
+  
   const [saveStatus, setSaveStatus] = useState({});
 
-  const handleLogout = async () => {
-    await logout();
+  // Check if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 
+  // Search Database (760 foods) - Shows apple, apple juice, apple pie
   const searchDatabaseLocal = async () => {
     if (!searchQuery.trim()) return;
-    setLoading(true);
+    setLoading(prev => ({ ...prev, database: true }));
     setError('');
     setSuccessMessage('');
 
     try {
       const results = await searchDatabase(searchQuery);
       if (results.success && results.results) {
-        setSearchResults(results.results);
+        setDatabaseResults(results.results);
         setSuccessMessage(`✅ Found ${results.results.length} results for "${searchQuery}"`);
       } else {
+        setDatabaseResults([]);
         setError('No results found. Try a different search term.');
       }
     } catch (err) {
-      setError('Search failed. Please try again.');
+      setError('Database search failed. Please try again.');
     } finally {
-      setLoading(false);
+      setLoading(prev => ({ ...prev, database: false }));
     }
   };
 
-  const searchSmart = async () => {
+  // Smart Search (Your growing database) - With speedometer
+  const searchSmartLocal = async () => {
     if (!searchQuery.trim()) return;
-    setLoading(true);
+    setLoading(prev => ({ ...prev, smart: true }));
     setError('');
     setSuccessMessage('');
 
     try {
-      const results = await searchDatabase(searchQuery);
-      if (results.success && results.results) {
-        setSearchResults(results.results);
-        setSuccessMessage(`⚡ Smart Search found ${results.results.length} results with speedometer analysis`);
+      const results = await searchSmart(searchQuery);
+      if (results.success && results.food) {
+        setSmartResults([results.food]);
+        setSuccessMessage(`⚡ Smart Search found "${results.food.food_name}" with speedometer analysis`);
       } else {
+        setSmartResults([]);
         setError('Smart search failed. Please try again.');
       }
     } catch (err) {
       setError('Smart search failed. Please try again.');
     } finally {
-      setLoading(false);
+      setLoading(prev => ({ ...prev, smart: false }));
     }
   };
 
-  const searchAI = async () => {
+  // AI Search (ICMR, FDA, Europe, Chinese CDN, Asian, African, Australian, Wikipedia)
+  const searchAILocal = async () => {
     if (!searchQuery.trim()) return;
-    setLoading(true);
+    setLoading(prev => ({ ...prev, ai: true }));
     setError('');
     setSuccessMessage('');
 
     try {
       const results = await searchWithAI(searchQuery);
       if (results.success && results.results) {
-        setSearchResults(results.results);
-        setSuccessMessage(`🧠 AI Search found ${results.results.length} results from global databases`);
+        setAiResults(results.results);
+        setSuccessMessage(`🤖 AI Search found ${results.results.length} results from international sources`);
       } else {
+        setAiResults([]);
         setError('AI search failed. Please try again.');
       }
     } catch (err) {
       setError('AI search failed. Please try again.');
     } finally {
-      setLoading(false);
+      setLoading(prev => ({ ...prev, ai: false }));
     }
   };
 
-  const saveFood = async (food) => {
-    const foodKey = food.food_name;
+  // Save AI result to database
+  const saveAIFood = async (food) => {
+    const foodKey = `${food.food_name}_${food.data_source}`;
     setSaveStatus(prev => ({ ...prev, [foodKey]: 'saving' }));
 
     try {
-      await saveAIFood(food);
-      setSaveStatus(prev => ({ ...prev, [foodKey]: 'saved' }));
-      setSuccessMessage(`✅ "${food.food_name}" saved successfully to your database!`);
+      const response = await api.post('/data', {
+        food_name: food.food_name,
+        calories: food.calories || 0,
+        protein_g: food.protein_g || 0,
+        fat_g: food.fat_g || 0,
+        carbs_g: food.carbs_g || 0,
+        diabetic_rating: food.diabetic_rating || 'yellow',
+        health_score: food.health_score || 50,
+        country: food.country || 'Unknown',
+        data_source: food.data_source || 'AI Generated'
+      });
+
+      if (response.data.success) {
+        setSaveStatus(prev => ({ ...prev, [foodKey]: 'saved' }));
+        setSuccessMessage(`✅ "${food.food_name}" saved successfully to your database!`);
+      } else {
+        throw new Error(response.data.error);
+      }
     } catch (error) {
       setSaveStatus(prev => ({ ...prev, [foodKey]: 'error' }));
       setError('Failed to save food. Please try again.');
@@ -429,8 +448,8 @@ function Dashboard() {
       
       {/* TITLE */}
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h1 style={{ color: '#4CAF50', margin: 0, fontSize: '48px', fontWeight: 'bold' }}>🍎 Nutribot</h1>
-        <p style={{ color: '#666', margin: '10px 0 0 0', fontSize: '20px' }}>760+ Foods • Smart Search • AI Analysis</p>
+        <h1 style={{ color: '#4CAF50', margin: 0, fontSize: '48px', fontWeight: 'bold' }}>🍎 HOMA FOODS</h1>
+        <p style={{ color: '#666', margin: '10px 0 0 0', fontSize: '20px' }}>Dr. Nehru's Nutrition Database • 760+ Foods • Smart Search • AI Analysis</p>
       </div>
 
       {/* SIGN UP AND LOGIN COMPONENTS */}
@@ -453,6 +472,15 @@ function Dashboard() {
         >
           🔐 Login
         </button>
+        <button 
+          onClick={handleLogout}
+          style={{
+            backgroundColor: '#f44336', color: 'white', border: 'none', padding: '12px 24px',
+            borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer'
+          }}
+        >
+          🚪 Logout
+        </button>
       </div>
 
       {/* SEARCH BOX */}
@@ -462,7 +490,7 @@ function Dashboard() {
             type="text" 
             value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Type 'foxtail millet upma' to see nutrition analysis..."
+            placeholder="Type 'chicken biryani' to see nutrition analysis..."
             style={{ 
               flex: 1, padding: '15px 20px', fontSize: '18px', 
               border: '3px solid #ddd', borderRadius: '10px', outline: 'none'
@@ -477,193 +505,201 @@ function Dashboard() {
       <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '30px', flexWrap: 'wrap' }}>
         <button 
           onClick={searchDatabaseLocal}
-          disabled={loading || !searchQuery.trim()}
+          disabled={loading.database || !searchQuery.trim()}
           style={{
-            backgroundColor: loading ? '#ccc' : '#2196F3', color: 'white', border: 'none',
+            backgroundColor: loading.database ? '#ccc' : '#2196F3', color: 'white', border: 'none',
             padding: '15px 30px', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold',
-            cursor: (loading || !searchQuery.trim()) ? 'not-allowed' : 'pointer'
+            cursor: (loading.database || !searchQuery.trim()) ? 'not-allowed' : 'pointer'
           }}
         >
-          {loading ? '🔄 Searching...' : '🔍 Search'}
+          {loading.database ? '🔄 Searching...' : '🔍 Search'}
         </button>
         <button 
-          onClick={searchSmart}
-          disabled={loading || !searchQuery.trim()}
+          onClick={searchSmartLocal}
+          disabled={loading.smart || !searchQuery.trim()}
           style={{
-            backgroundColor: loading ? '#ccc' : '#4CAF50', color: 'white', border: 'none',
+            backgroundColor: loading.smart ? '#ccc' : '#4CAF50', color: 'white', border: 'none',
             padding: '15px 30px', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold',
-            cursor: (loading || !searchQuery.trim()) ? 'not-allowed' : 'pointer'
+            cursor: (loading.smart || !searchQuery.trim()) ? 'not-allowed' : 'pointer'
           }}
         >
-          {loading ? '🔄 Analyzing...' : '⚡ Smart Search'}
+          {loading.smart ? '🔄 Analyzing...' : '⚡ Smart Search'}
         </button>
         <button 
-          onClick={searchAI}
-          disabled={loading || !searchQuery.trim()}
+          onClick={searchAILocal}
+          disabled={loading.ai || !searchQuery.trim()}
           style={{
-            backgroundColor: loading ? '#ccc' : '#9C27B0', color: 'white', border: 'none',
+            backgroundColor: loading.ai ? '#ccc' : '#9C27B0', color: 'white', border: 'none',
             padding: '15px 30px', borderRadius: '10px', fontSize: '16px', fontWeight: 'bold',
-            cursor: (loading || !searchQuery.trim()) ? 'not-allowed' : 'pointer'
+            cursor: (loading.ai || !searchQuery.trim()) ? 'not-allowed' : 'pointer'
           }}
         >
-          {loading ? '🔄 AI Thinking...' : '🧠 AI Search'}
+          {loading.ai ? '🔄 AI Searching...' : '🤖 AI Search'}
         </button>
       </div>
 
-      {/* MESSAGE SUCCESS */}
+      {/* MESSAGES */}
       {successMessage && (
         <div style={{ 
-          backgroundColor: '#e8f5e8', color: '#2e7d32', padding: '15px', 
-          borderRadius: '8px', marginBottom: '20px', textAlign: 'center',
-          border: '2px solid #4caf50', fontSize: '16px', fontWeight: 'bold'
+          background: '#e8f5e8', color: '#2e7d32', padding: '15px', borderRadius: '8px', 
+          marginBottom: '20px', border: '1px solid #4caf50', textAlign: 'center', fontSize: '16px'
         }}>
           {successMessage}
         </div>
       )}
 
-      {/* ERROR MESSAGE */}
       {error && (
         <div style={{ 
-          backgroundColor: '#ffebee', color: '#c62828', padding: '15px', 
-          borderRadius: '8px', marginBottom: '20px', textAlign: 'center',
-          border: '2px solid #f44336', fontSize: '16px', fontWeight: 'bold'
+          background: '#ffebee', color: '#c62828', padding: '15px', borderRadius: '8px', 
+          marginBottom: '20px', border: '1px solid #f44336', textAlign: 'center', fontSize: '16px'
         }}>
           ❌ {error}
         </div>
       )}
 
-      {/* FOOD DISPLAY WITH SPEEDOMETER */}
-      {searchResults.length > 0 && (
-        <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', marginBottom: '20px' }}>
-          {searchResults.slice(0, 1).map((food, index) => (
-            <div key={index}>
-              {/* FOOD NAME */}
-              <h2 style={{ color: '#4CAF50', margin: '0 0 20px 0', fontSize: '32px', textAlign: 'center' }}>
-                {food.food_name}
-              </h2>
-
-              {/* CALORIES, PROTEIN, FAT, CARBS, HEALTH SCORE */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-                <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#f44336' }}>🔥</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>{food.calories}</div>
-                  <div style={{ color: '#666' }}>Calories</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#4CAF50' }}>🥩</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>{food.protein_g || 'N/A'}</div>
-                  <div style={{ color: '#666' }}>Protein (g)</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#FF9800' }}>🥑</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>{food.fat_g || 'N/A'}</div>
-                  <div style={{ color: '#666' }}>Fat (g)</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#2196F3' }}>🍞</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>{food.carbs_g || 'N/A'}</div>
-                  <div style={{ color: '#666' }}>Carbs (g)</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#9C27B0' }}>⭐</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>{food.health_score || 88}/100</div>
-                  <div style={{ color: '#666' }}>Health Score</div>
-                </div>
-              </div>
-
-              {/* COUNTRY */}
-              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                <div style={{ fontSize: '18px', color: '#666' }}>
-                  <strong>Country:</strong> {food.country || 'India'}
-                </div>
-              </div>
-
-              {/* HEALTH SPEEDOMETER AND SAFE FOR DIABETES BOX */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap' }}>
-                {/* HEALTH SPEEDOMETER */}
-                <div style={{ flex: 1, minWidth: '300px' }}>
-                  <h3 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Health Speedometer</h3>
-                  <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-                    <Speedometer value={food.calories} min={0} max={500} label="🔥 Calories" color={getHealthColor(food.diabetic_rating)} size={100} />
-                    <Speedometer value={food.protein_g || 0} min={0} max={50} label="🥩 Protein" color={getHealthColor(food.diabetic_rating)} size={100} />
-                    <Speedometer value={food.fat_g || 0} min={0} max={30} label="🥑 Fat" color={getHealthColor(food.diabetic_rating)} size={100} />
+      {/* THREE SEARCH RESULT BOXES */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        
+        {/* SEARCH RESULTS */}
+        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ color: '#2196F3', marginBottom: '15px', textAlign: 'center' }}>🔍 Search Results</h3>
+          {databaseResults.length > 0 ? (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {databaseResults.map((food, index) => (
+                <div key={index} style={{ 
+                  padding: '15px', marginBottom: '10px', backgroundColor: '#f8f9fa', 
+                  borderRadius: '8px', border: '1px solid #e9ecef'
+                }}>
+                  <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{food.food_name}</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+                    <div>🔥 {food.calories} cal</div>
+                    <div>🥩 {food.protein_g}g protein</div>
+                    <div>🧈 {food.fat_g}g fat</div>
+                    <div>🍞 {food.carbs_g}g carbs</div>
+                  </div>
+                  <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ 
+                      color: getHealthColor(food.diabetic_rating), 
+                      fontWeight: 'bold', 
+                      fontSize: '12px' 
+                    }}>
+                      {getHealthText(food.diabetic_rating)}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#666' }}>{food.country}</span>
                   </div>
                 </div>
-
-                {/* SAFE FOR DIABETES ADVICE BOX */}
-                <div style={{ 
-                  flex: 1, minWidth: '300px', padding: '20px', 
-                  backgroundColor: '#e8f5e8', borderRadius: '15px', 
-                  border: '3px solid #4caf50', textAlign: 'center'
-                }}>
-                  <div style={{ fontSize: '24px', marginBottom: '10px' }}>💚</div>
-                  <h3 style={{ color: '#2e7d32', margin: '0 0 10px 0', fontSize: '20px' }}>
-                    Safe for Diabetes
-                  </h3>
-                  <p style={{ color: '#2e7d32', margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
-                    {getHealthText(food.diabetic_rating)}
-                  </p>
-                  <div style={{ marginTop: '15px', fontSize: '14px', color: '#2e7d32' }}>
-                    Health Score: {food.health_score || 88}/100
-                  </div>
-                </div>
-              </div>
-
-              {/* SAVE BUTTON */}
-              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <button
-                  onClick={() => saveFood(food)}
-                  disabled={saveStatus[food.food_name] === 'saving' || saveStatus[food.food_name] === 'saved'}
-                  style={{
-                    backgroundColor: saveStatus[food.food_name] === 'saved' ? '#4caf50' : 
-                                   saveStatus[food.food_name] === 'saving' ? '#ff9800' : '#2196f3',
-                    color: 'white', border: 'none', padding: '15px 30px', borderRadius: '10px',
-                    fontSize: '18px', fontWeight: 'bold', cursor: 'pointer'
-                  }}
-                >
-                  {saveStatus[food.food_name] === 'saved' ? '✅ Saved Successfully!' : 
-                   saveStatus[food.food_name] === 'saving' ? '💾 Saving...' : 
-                   '💾 Save to Database'}
-                </button>
-              </div>
-
-              {/* SAVED SUCCESSFULLY MESSAGE */}
-              {saveStatus[food.food_name] === 'saved' && (
-                <div style={{ 
-                  backgroundColor: '#e8f5e8', color: '#2e7d32', padding: '15px', 
-                  borderRadius: '8px', textAlign: 'center', marginBottom: '20px',
-                  border: '2px solid #4caf50', fontSize: '16px', fontWeight: 'bold'
-                }}>
-                  ✅ Saved Successfully! This food is now in your database.
-                </div>
-              )}
+              ))}
             </div>
-          ))}
+          ) : (
+            <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+              {loading.database ? 'Searching...' : 'No results yet. Try searching!'}
+            </p>
+          )}
         </div>
-      )}
 
-      {/* LOGOUT BUTTON */}
-      <div style={{ textAlign: 'center', marginTop: '30px' }}>
-        <button 
-          onClick={handleLogout}
-          style={{
-            backgroundColor: '#f44336', color: 'white', border: 'none', padding: '15px 30px',
-            borderRadius: '10px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer'
-          }}
-        >
-          🚪 Logout
-        </button>
+        {/* SMART SEARCH RESULTS */}
+        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ color: '#4CAF50', marginBottom: '15px', textAlign: 'center' }}>⚡ Smart Search</h3>
+          {smartResults.length > 0 ? (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {smartResults.map((food, index) => (
+                <div key={index} style={{ 
+                  padding: '15px', marginBottom: '10px', backgroundColor: '#f8f9fa', 
+                  borderRadius: '8px', border: '1px solid #e9ecef'
+                }}>
+                  <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{food.food_name}</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+                    <div>🔥 {food.calories} cal</div>
+                    <div>🥩 {food.protein_g}g protein</div>
+                    <div>🧈 {food.fat_g}g fat</div>
+                    <div>🍞 {food.carbs_g}g carbs</div>
+                  </div>
+                  
+                  {/* SPEEDOMETER */}
+                  <div style={{ margin: '15px 0', textAlign: 'center' }}>
+                    <div style={{ 
+                      width: '100%', height: '20px', backgroundColor: '#e0e0e0', 
+                      borderRadius: '10px', overflow: 'hidden', position: 'relative'
+                    }}>
+                      <div style={{
+                        width: `${food.health_score || 50}%`, height: '100%', 
+                        backgroundColor: getHealthColor(food.diabetic_rating),
+                        transition: 'width 0.3s ease'
+                      }}></div>
+                    </div>
+                    <div style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
+                      Health Score: {food.health_score || 50}/100
+                    </div>
+                  </div>
+                  
+                  <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ 
+                      color: getHealthColor(food.diabetic_rating), 
+                      fontWeight: 'bold', 
+                      fontSize: '12px' 
+                    }}>
+                      {getHealthText(food.diabetic_rating)}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#666' }}>{food.country}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+              {loading.smart ? 'Analyzing...' : 'No smart results yet. Try smart search!'}
+            </p>
+          )}
+        </div>
+
+        {/* AI SEARCH RESULTS */}
+        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ color: '#9C27B0', marginBottom: '15px', textAlign: 'center' }}>🤖 AI Search</h3>
+          {aiResults.length > 0 ? (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {aiResults.map((food, index) => {
+                const foodKey = `${food.food_name}_${food.data_source}`;
+                return (
+                  <div key={index} style={{ 
+                    padding: '15px', marginBottom: '10px', backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px', border: '1px solid #e9ecef'
+                  }}>
+                    <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{food.food_name}</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+                      <div>🔥 {food.calories} cal</div>
+                      <div>🥩 {food.protein_g}g protein</div>
+                      <div>🧈 {food.fat_g}g fat</div>
+                      <div>🍞 {food.carbs_g}g carbs</div>
+                    </div>
+                    <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', color: '#666' }}>{food.data_source}</span>
+                      <button
+                        onClick={() => saveAIFood(food)}
+                        disabled={saveStatus[foodKey] === 'saving' || saveStatus[foodKey] === 'saved'}
+                        style={{
+                          padding: '5px 10px', fontSize: '12px', border: 'none', borderRadius: '4px',
+                          backgroundColor: saveStatus[foodKey] === 'saved' ? '#4CAF50' : 
+                                         saveStatus[foodKey] === 'saving' ? '#ccc' : '#9C27B0',
+                          color: 'white', cursor: saveStatus[foodKey] === 'saving' ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        {saveStatus[foodKey] === 'saved' ? '✅ Saved' : 
+                         saveStatus[foodKey] === 'saving' ? '🔄 Saving...' : '💾 Save'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p style={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+              {loading.ai ? 'AI Searching...' : 'No AI results yet. Try AI search!'}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
-}
-
-// ============================================
-// PRIVATE ROUTE COMPONENT
-// ============================================
-function PrivateRoute({ children }) {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" />;
 }
 
 // ============================================
@@ -673,10 +709,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );
