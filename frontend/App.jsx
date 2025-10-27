@@ -5,7 +5,7 @@ import axios from 'axios';
 // ============================================
 // CONFIGURATION - YOUR LIVE BACKEND
 // ============================================
-const API_BASE_URL = 'https://nutrition-bot-d3qabts9c44c73cjq0ug.onrender.com/api';
+const API_BASE_URL = 'https://homa-foods-nutrition.onrender.com/api';
 
 // ============================================
 // API FUNCTIONS
