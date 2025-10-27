@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3031/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://nutrition-bot-d3qabts9c44c73cjq0ug.onrender.com/api';
 
 // Token management
 export const setToken = (token) => {
