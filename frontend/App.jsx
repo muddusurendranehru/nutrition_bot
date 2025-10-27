@@ -327,7 +327,7 @@ function Dashboard() {
     navigate('/login');
   };
 
-  const searchDatabase = async () => {
+  const searchDatabaseLocal = async () => {
     if (!searchQuery.trim()) return;
     setLoading(true);
     setError('');
@@ -476,7 +476,7 @@ function Dashboard() {
       {/* SEARCH, SMART SEARCH, AI SEARCH BUTTONS */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '30px', flexWrap: 'wrap' }}>
         <button 
-          onClick={searchDatabase}
+          onClick={searchDatabaseLocal}
           disabled={loading || !searchQuery.trim()}
           style={{
             backgroundColor: loading ? '#ccc' : '#2196F3', color: 'white', border: 'none',
