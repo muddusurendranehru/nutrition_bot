@@ -15,8 +15,8 @@ router.post('/foods', async (req, res) => {
     
     if (!query || query.trim() === '') {
       return res.json({
-        success: false, 
-        error: 'Search query is required' 
+        success: false,
+        error: 'Search query is required'
       });
     }
 
@@ -33,7 +33,7 @@ router.post('/foods', async (req, res) => {
         country,
         data_source,
         created_at
-      FROM food_nutrition 
+      FROM food_nutrition
       WHERE food_name ILIKE $1 
          OR food_name_lower ILIKE $1
          OR $2 = ANY(alternate_names)
@@ -47,17 +47,17 @@ router.post('/foods', async (req, res) => {
         popularity_score DESC
       LIMIT 20
     `;
-
+    
     const searchTerm = `%${query}%`;
     const result = await pool.query(searchQuery, [searchTerm, query]);
-
+    
     res.json({
       success: true,
       results: result.rows,
       count: result.rows.length,
       query: query
     });
-
+    
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({
@@ -74,13 +74,13 @@ router.get('/categories', async (req, res) => {
     const query = `
       SELECT DISTINCT category, COUNT(*) as count
       FROM food_nutrition 
-      WHERE category IS NOT NULL
+      WHERE category IS NOT NULL 
       GROUP BY category 
       ORDER BY count DESC
     `;
     
     const result = await pool.query(query);
-    
+
     res.json({
       success: true,
       categories: result.rows
@@ -114,7 +114,7 @@ router.get('/low-gi', async (req, res) => {
     `;
     
     const result = await pool.query(query);
-    
+
     res.json({
       success: true,
       results: result.rows,
@@ -147,7 +147,7 @@ router.get('/history', async (req, res) => {
   }
 });
 
-// GET /api/search/suggestions/:query - Get search suggestions
+// GET /api/search/suggestions/:query - Get search suggestions as user types
 router.get('/suggestions/:query', async (req, res) => {
   try {
     const { query } = req.params;
@@ -159,28 +159,50 @@ router.get('/suggestions/:query', async (req, res) => {
       });
     }
 
+    console.log(`💡 Getting suggestions for: "${query}"`);
+
+    // Search for foods that start with or contain the query
     const searchQuery = `
-      SELECT DISTINCT food_name
+      SELECT DISTINCT food_name, calories, diabetic_rating, health_score, country
       FROM food_nutrition 
-      WHERE food_name ILIKE $1
-         OR food_name_lower ILIKE $1
+      WHERE food_name_lower ILIKE $1
+         OR food_name ILIKE $1
+         OR EXISTS (
+           SELECT 1 FROM unnest(regional_names) AS rn 
+           WHERE LOWER(rn) ILIKE $1
+         )
+         OR EXISTS (
+           SELECT 1 FROM unnest(alternate_names) AS an 
+           WHERE LOWER(an) ILIKE $1
+         )
       ORDER BY 
         CASE 
-          WHEN food_name ILIKE $1 THEN 1
-          ELSE 2
+          WHEN food_name_lower ILIKE $2 THEN 1
+          WHEN food_name ILIKE $2 THEN 2
+          ELSE 3
         END,
-        popularity_score DESC
-      LIMIT 10
+        popularity_score DESC,
+        health_score DESC
+      LIMIT 8
     `;
 
     const searchTerm = `%${query}%`;
-    const result = await pool.query(searchQuery, [searchTerm]);
+    const startsWithTerm = `${query}%`;
+    const result = await pool.query(searchQuery, [searchTerm, startsWithTerm]);
 
-    const suggestions = result.rows.map(row => row.food_name);
-    
+    const suggestions = result.rows.map(row => ({
+      food_name: row.food_name,
+      calories: row.calories,
+      diabetic_rating: row.diabetic_rating,
+      health_score: row.health_score,
+      country: row.country
+    }));
+
     res.json({
       success: true,
-      suggestions: suggestions
+      suggestions: suggestions,
+      query: query,
+      count: suggestions.length
     });
 
   } catch (error) {
@@ -275,28 +297,45 @@ router.post('/ai-search', async (req, res) => {
       };
     }
 
-    // Ensure all required fields
-    const finalResult = {
-      food_name: aiResult.food_name || query,
-      calories: parseFloat(aiResult.calories) || 200,
-      protein_g: parseFloat(aiResult.protein_g) || 15,
-      fat_g: parseFloat(aiResult.fat_g) || 10,
-      carbs_g: parseFloat(aiResult.carbs_g) || 20,
-      health_score: parseInt(aiResult.health_score) || 70,
-      diabetic_rating: aiResult.diabetic_rating || 'yellow',
-      country: aiResult.country || 'International',
-      cuisine_type: aiResult.cuisine_type || 'Various',
-      data_source: 'OpenAI Analysis',
-      is_ai_result: true,
-      created_at: new Date().toISOString()
-    };
+    // Check if this food already exists in database
+    const existingFood = await pool.query(
+      'SELECT * FROM food_nutrition WHERE LOWER(food_name) = LOWER($1)',
+      [aiResult.food_name || query]
+    );
+
+    let finalResult;
+    let isAlreadySaved = false;
+
+    if (existingFood.rows.length > 0) {
+      // Food already exists - return existing data
+      finalResult = existingFood.rows[0];
+      isAlreadySaved = true;
+    } else {
+      // New food - create AI result
+      finalResult = {
+        food_name: aiResult.food_name || query,
+        calories: parseFloat(aiResult.calories) || 200,
+        protein_g: parseFloat(aiResult.protein_g) || 15,
+        fat_g: parseFloat(aiResult.fat_g) || 10,
+        carbs_g: parseFloat(aiResult.carbs_g) || 20,
+        health_score: parseInt(aiResult.health_score) || 70,
+        diabetic_rating: aiResult.diabetic_rating || 'yellow',
+        country: aiResult.country || 'International',
+        cuisine_type: aiResult.cuisine_type || 'Various',
+        data_source: 'OpenAI Analysis',
+        is_ai_result: true,
+        isAlreadySaved: false,
+        created_at: new Date().toISOString()
+      };
+    }
 
     res.json({
       success: true,
       results: [finalResult],
       count: 1,
       query: query,
-      ai_analysis: true
+      ai_analysis: true,
+      isAlreadySaved: isAlreadySaved
     });
 
   } catch (error) {
