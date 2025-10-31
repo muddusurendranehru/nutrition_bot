@@ -34,7 +34,7 @@ function Dashboard() {
   }, []);
 
   const handleSaveAIFood = async (food) => {
-    if (!food || food.diabetic_rating !== 'ai') return;
+    if (!food) return;
     
     const foodKey = food.food_name;
     setSaveStatus(prev => ({ ...prev, [foodKey]: 'saving' }));
@@ -327,26 +327,29 @@ function Dashboard() {
                   </div>
                 )}
 
-                {food.diabetic_rating === 'ai' && food.ai_response && (
+                {/* Show Save button for any AI result (not just diabetic_rating === 'ai') */}
+                {(food.ai_response || (food.data_source || '').toLowerCase().includes('ai')) && (
                   <>
-                    <div style={{
-                      marginTop: '15px',
-                      padding: '15px',
-                      borderRadius: '8px',
-                      backgroundColor: '#f3e5f5',
-                      color: '#4a148c',
-                      border: '1px solid #ce93d8'
-                    }}>
-                      <strong>🤖 AI Nutrition Analysis:</strong>
+                    {food.ai_response && (
                       <div style={{
-                        marginTop: '10px',
-                        fontSize: '14px',
-                        lineHeight: '1.5',
-                        whiteSpace: 'pre-wrap'
+                        marginTop: '15px',
+                        padding: '15px',
+                        borderRadius: '8px',
+                        backgroundColor: '#f3e5f5',
+                        color: '#4a148c',
+                        border: '1px solid #ce93d8'
                       }}>
-                        {food.ai_response}
+                        <strong>🤖 AI Nutrition Analysis:</strong>
+                        <div style={{
+                          marginTop: '10px',
+                          fontSize: '14px',
+                          lineHeight: '1.5',
+                          whiteSpace: 'pre-wrap'
+                        }}>
+                          {food.ai_response}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     
                     {/* Save to Database Button for AI Foods */}
                     <div style={{
@@ -403,7 +406,7 @@ function Dashboard() {
                   paddingTop: '10px'
                 }}>
                   <strong>Source:</strong> {food.data_source} | 
-                  <strong> Country:</strong> {food.country} |
+                  <strong> Country:</strong> {food.country} | 
                   <strong> Cuisine:</strong> {food.cuisine_type}
                 </div>
               </div>
