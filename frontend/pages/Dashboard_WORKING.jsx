@@ -140,7 +140,7 @@ function Dashboard() {
       }}>
         <div>
           <h1 style={{ color: '#4CAF50', margin: 0, fontSize: '32px' }}>
-            🍊 Nutribot Dashboard
+            🍊 Nutribot Dashboard <span style={{ fontSize: '14px', color: '#9C27B0', fontWeight: 'bold' }}>v3.0</span>
           </h1>
           <p style={{ color: '#666', margin: '5px 0 0 0' }}>
             Search 750+ Foods - Get Nutrition Analysis
@@ -522,4 +522,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-
