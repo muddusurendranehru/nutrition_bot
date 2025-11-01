@@ -330,26 +330,31 @@ function Dashboard() {
                   </div>
                 )}
 
-                {food.diabetic_rating === 'ai' && food.ai_response && (
+                {/* Show Save button if AI Search was used OR food has AI indicators */}
+                {(isAISearch || food.ai_response || 
+                  (food.data_source || '').toLowerCase().includes('ai') || 
+                  (food.data_source || '').toLowerCase().includes('openai')) && (
                   <>
-                    <div style={{
-                      marginTop: '15px',
-                      padding: '15px',
-                      borderRadius: '8px',
-                      backgroundColor: '#f3e5f5',
-                      color: '#4a148c',
-                      border: '1px solid #ce93d8'
-                    }}>
-                      <strong>🤖 AI Nutrition Analysis:</strong>
+                    {food.ai_response && (
                       <div style={{
-                        marginTop: '10px',
-                        fontSize: '14px',
-                        lineHeight: '1.5',
-                        whiteSpace: 'pre-wrap'
+                        marginTop: '15px',
+                        padding: '15px',
+                        borderRadius: '8px',
+                        backgroundColor: '#f3e5f5',
+                        color: '#4a148c',
+                        border: '1px solid #ce93d8'
                       }}>
-                        {food.ai_response}
+                        <strong>🤖 AI Nutrition Analysis:</strong>
+                        <div style={{
+                          marginTop: '10px',
+                          fontSize: '14px',
+                          lineHeight: '1.5',
+                          whiteSpace: 'pre-wrap'
+                        }}>
+                          {food.ai_response}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     
                     {/* Save to Database Button for AI Foods */}
                     <div style={{
