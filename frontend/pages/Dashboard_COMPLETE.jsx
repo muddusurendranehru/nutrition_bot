@@ -202,12 +202,18 @@ function Dashboard() {
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', padding: '20px', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-        <div>
-          <h1 style={{ color: '#4CAF50', margin: 0, fontSize: '32px' }}>
-            🍊 Nutribot Dashboard <span style={{ fontSize: '16px', color: '#9C27B0', fontWeight: 'bold' }}>v5.0 COMPLETE</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', padding: '24px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 4px 14px rgba(0,0,0,0.12)' }}>
+        <div style={{ maxWidth: '75%' }}>
+          <h1 style={{ color: '#2e7d32', margin: 0, fontSize: '30px', lineHeight: 1.3 }}>
+            🍊 NutriBot · Dr. Muddu Surendra Nehru, M.D.
+            <span style={{ display: 'block', fontSize: '16px', color: '#6a1b9a', fontWeight: 'bold' }}>Physician · Professor of Medicine · Free Nutri App</span>
           </h1>
-          <p style={{ color: '#666', margin: '5px 0 0 0' }}>Search 750+ Foods - AI Analysis - Visual Health Indicators</p>
+          <p style={{ color: '#444', margin: '10px 0 0 0', fontWeight: 600 }}>
+            Developed, Designed & Executed Solely · Call/WhatsApp: +91 99637 21999
+          </p>
+          <p style={{ color: '#666', margin: '6px 0 0 0' }}>
+            Search 3 Lakh Foods · AI Nutrition Insights · Visual Health Indicators · Donate to keep the service 24/7/365
+          </p>
         </div>
         <button onClick={handleLogout} style={{ backgroundColor: '#f44336', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>
           Logout
@@ -353,6 +359,20 @@ function Dashboard() {
           <p style={{ color: '#999' }}>Try "pizza", "biryani", or any food you're curious about.</p>
         </div>
       )}
+
+      {/* Footer */}
+      <footer style={{ marginTop: '40px', padding: '24px', backgroundColor: '#1b5e20', color: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.18)', textAlign: 'center' }}>
+        <div style={{ fontSize: '18px', fontWeight: 'bold' }}>NutriBot · Dr. Muddu Surendra Nehru, M.D.</div>
+        <div style={{ marginTop: '8px', fontSize: '14px' }}>
+          Serving India with evidence-based nutrition intelligence · 3 Lakh foods · AI-powered insights · Always free.
+        </div>
+        <div style={{ marginTop: '10px', fontSize: '14px' }}>
+          Donate / Collaborate: +91 99637 21999 · homa-foods-nutrition.onrender.com
+        </div>
+        <div style={{ marginTop: '12px', fontSize: '12px', letterSpacing: '0.03em', opacity: 0.85 }}>
+          © {new Date().getFullYear()} Dr. Muddu Surendra Nehru · All Rights Reserved · Designed & Deployed on Render + Neon PostgreSQL + React
+        </div>
+      </footer>
     </div>
   );
 }
