@@ -10,6 +10,11 @@ export default defineConfig({
       }
     }
   },
+  preview: {
+    allowedHosts: [
+      'nutrition-bot-frontend.onrender.com'
+    ]
+  },
   server: {
     port: 5173,
     proxy: {
