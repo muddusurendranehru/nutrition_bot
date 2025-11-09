@@ -1,0 +1,13 @@
+@echo off
+echo 🍎 Starting Nutribot Backend...
+cd /d "C:\Users\pc\nutrition_bot\backend"
+
+echo 📦 Installing dependencies...
+npm install
+
+echo 🚀 Starting server...
+npm start
+
+echo.
+echo Press any key to close...
+pause

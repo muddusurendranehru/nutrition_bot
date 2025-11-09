@@ -1,0 +1,102 @@
+import express from 'express';
+import { 
+  searchFoodsWithAI,
+  searchICMRFoods,
+  searchTaraDalalFoods,
+  searchChineseFoods,
+  searchAmericanFoods
+} from '../utils/boltSearchEngine.js';
+
+const router = express.Router();
+
+// ============================================
+// BOLT AI SEARCH - ONLY WHEN CLICKED
+// ============================================
+
+// Main Bolt Search - AI powered
+router.post('/bolt', async (req, res) => {
+  try {
+    const { query, options = {} } = req.body;
+    
+    if (!query?.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query is required'
+      });
+    }
+
+    console.log('🧠 Bolt AI Search activated for:', query);
+    
+    const results = await searchFoodsWithAI(query, options);
+    
+    return res.json(results);
+    
+  } catch (error) {
+    console.error('Bolt search error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'AI search temporarily unavailable',
+      message: error.message
+    });
+  }
+});
+
+// Specialized searches
+router.post('/icmr', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const results = await searchICMRFoods(query);
+    res.json(results);
+  } catch (error) {
+    console.error('ICMR search error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/tara-dalal', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const results = await searchTaraDalalFoods(query);
+    res.json(results);
+  } catch (error) {
+    console.error('Tara Dalal search error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/chinese', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const results = await searchChineseFoods(query);
+    res.json(results);
+  } catch (error) {
+    console.error('Chinese search error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/american', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const results = await searchAmericanFoods(query);
+    res.json(results);
+  } catch (error) {
+    console.error('American search error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Search history (optional)
+router.get('/history', async (req, res) => {
+  try {
+    // This could be implemented to track search history
+    res.json({
+      success: true,
+      history: []
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+export default router;

@@ -1,0 +1,18 @@
+COPY THIS CONTENT TO CREATE YOUR .env FILE
+===========================================
+
+1. Go to: C:\Users\pc\nutrition_bot\backend
+2. Create new file named: .env (exactly this name)
+3. Copy and paste this content into .env file:
+
+DATABASE_URL=your_neon_connection_string_here
+JWT_SECRET=nutribot-secret-key-123
+PORT=3031
+FRONTEND_URL=http://localhost:5173
+
+4. Replace "your_neon_connection_string_here" with your actual Neon database URL
+
+EXAMPLE Neon URL format:
+DATABASE_URL=postgresql://username:password@ep-xxxxx.us-east-1.aws.neon.tech/nutribot?sslmode=require
+
+===========================================
