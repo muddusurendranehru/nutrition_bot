@@ -235,7 +235,18 @@
             constructor() {
                 this.apiUrl = window.location.origin + '/api';
                 this.token = localStorage.getItem('homaFoodsToken');
+                this._searchInputTimer = null;
                 this.init();
+            }
+
+            /** Strips pasted instructions (e.g. "chicken and login again" → "chicken"). Uses first line only. */
+            sanitizeFoodSearchQuery(raw) {
+                let q = (raw || '').trim();
+                if (!q) return '';
+                q = q.split(/\r?\n/)[0].trim();
+                q = q.replace(/\s+and\s+login\s+again\s*$/i, '').trim();
+                q = q.replace(/\s+and\s+restart\s+.*$/i, '').trim();
+                return q;
             }
 
             init() {
@@ -260,7 +271,10 @@
                 
                 // Search input with suggestions
                 const searchInput = document.getElementById('search-input');
-                searchInput.addEventListener('input', (e) => this.handleSearchInput(e));
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(this._searchInputTimer);
+                    this._searchInputTimer = setTimeout(() => this.handleSearchInput(e), 320);
+                });
                 searchInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') this.handleSearch();
                 });
@@ -358,7 +372,7 @@
             }
 
             async handleSearchInput(e) {
-                const query = e.target.value.trim();
+                const query = this.sanitizeFoodSearchQuery(e.target.value);
                 if (query.length < 2) {
                     this.hideSuggestions();
                     return;
@@ -405,7 +419,7 @@
             }
 
             async handleSearch() {
-                const query = document.getElementById('search-input').value.trim();
+                const query = this.sanitizeFoodSearchQuery(document.getElementById('search-input').value);
                 if (!query) return;
 
                 this.hideSuggestions();
@@ -423,7 +437,7 @@
             }
 
             async handleSmartSearch() {
-                const query = document.getElementById('search-input').value.trim();
+                const query = this.sanitizeFoodSearchQuery(document.getElementById('search-input').value);
                 if (!query) {
                     this.showSmartSearchStatus('⚠️ Please enter a food name to search', 'warning');
                     return;
@@ -490,7 +504,7 @@
             }
 
             async handleBoltSearch() {
-                const query = document.getElementById('search-input').value.trim();
+                const query = this.sanitizeFoodSearchQuery(document.getElementById('search-input').value);
                 if (!query) {
                     this.showSmartSearchStatus('⚠️ Please enter a food name to search', 'warning');
                     return;
@@ -660,7 +674,8 @@
             }
 
             createSpeedometer(value, min, max, type) {
-                const percentage = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+                const num = Number.isFinite(Number(value)) ? Number(value) : 0;
+                const percentage = Math.min(100, Math.max(0, ((num - min) / (max - min)) * 100));
                 const angle = (percentage / 100) * 180; // 0 to 180 degrees
                 
                 // Color based on percentage (green to red)
@@ -691,7 +706,7 @@
                             <circle cx="40" cy="40" r="3" fill="#333"/>
                         </svg>
                         <div style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: bold; color: ${color};">
-                            ${value.toFixed(1)}
+                            ${num.toFixed(1)}
                         </div>
                     </div>
                 `;

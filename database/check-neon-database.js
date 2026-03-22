@@ -1,8 +1,14 @@
+const path = require('path');
 const { Pool } = require('pg');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+if (!process.env.DATABASE_URL) {
+  console.error('❌ Set DATABASE_URL in .env (Neon Dashboard → Connection details).');
+  process.exit(1);
+}
 
 const pool = new Pool({
-  connectionString: 'postgresql://neondb_owner:npg_Bl9kug4wxKzN@ep-weathered-paper-a1mbh5zv-pooler.ap-southeast-1.aws.neon.tech/nutri_bot1?sslmode=require&channel_binding=require',
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 

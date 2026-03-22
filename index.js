@@ -8,8 +8,15 @@ const { Pool } = require('pg');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
 
+const DATABASE_URL = (process.env.DATABASE_URL || '').trim();
+if (!DATABASE_URL) {
+  console.error('❌ Set DATABASE_URL in .env (copy Connection string from Neon → Dashboard → your project).');
+  process.exit(1);
+}
+
 const app = express();
-const PORT = process.env.PORT || 3031;
+const preferredPort = Number(process.env.PORT) || 3031;
+const maxPort = preferredPort + 20;
 
 // Middleware
 app.use(cors());
@@ -17,25 +24,52 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Database connection pool (auto-reconnects)
+// Neon can cold-start after auto-suspend; 10s is often too short — allow up to 60s to connect.
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_Bl9kug4wxKzN@ep-weathered-paper-a1mbh5zv-pooler.ap-southeast-1.aws.neon.tech/nutri_bot1?sslmode=require',
+  connectionString: DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: Number(process.env.PG_CONNECTION_TIMEOUT_MS) || 60000,
 });
 
 // Test database connection
 pool.query('SELECT NOW()')
   .then(() => console.log('✅ Connected to HOMA FOODS database'))
-  .catch(err => console.error('❌ Database connection error:', err));
+  .catch((err) => {
+    console.error('❌ Database connection error:', err.message);
+    if (err.code === '28P01') {
+      console.error(
+        '   Neon rejected the password. Open https://console.neon.tech → your project → Connection details → copy the full URI again (or reset the DB user password), then paste into .env as DATABASE_URL=...'
+      );
+    }
+    if (/timeout|ETIMEDOUT|ECONNREFUSED|ENOTFOUND/i.test(String(err.message)) || err.code === 'ETIMEDOUT') {
+      console.error(
+        '   Tip: Neon may be waking from sleep (first query slower). Retry in 30s. Check firewall/VPN. Use pooler host (*-pooler.*.neon.tech) from Neon. Optional: PG_CONNECTION_TIMEOUT_MS=90000 in .env'
+      );
+    }
+  });
 
 // Handle pool errors
 pool.on('error', (err) => {
   console.error('❌ Unexpected database error:', err.message);
 });
+
+/** True when Neon/Postgres is unreachable or credentials are wrong (login/signup should not look like generic 500). */
+function isDatabaseConnectivityError(err) {
+  if (!err) return false;
+  const c = err.code;
+  // PostgreSQL class 08 — connection exception (08000, 08003, 08006, etc.)
+  if (typeof c === 'string' && c.startsWith('08')) return true;
+  if (['28P01', '57P03', '3D000', '28000', 'ECONNREFUSED', 'ENOTFOUND', 'ETIMEDOUT', 'ECONNRESET', 'EPIPE'].includes(c)) {
+    return true;
+  }
+  return /password authentication|connection refused|connect timed out|connection timeout|terminated due to connection timeout|database/i.test(
+    String(err.message || '')
+  );
+}
 
 // ============================================
 // AUTHENTICATION MIDDLEWARE
@@ -115,6 +149,12 @@ app.post('/api/auth/signup', [
 
   } catch (error) {
     console.error('Signup error:', error);
+    if (isDatabaseConnectivityError(error)) {
+      return res.status(503).json({
+        error:
+          'Database unavailable. Fix DATABASE_URL in .env (copy the full URI from Neon → Connection details).'
+      });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -144,14 +184,33 @@ app.post('/api/auth/login', [
 
     const user = result.rows[0];
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    if (!user.password_hash || typeof user.password_hash !== 'string') {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Verify password (invalid hash format throws — avoid 500)
+    let isValidPassword = false;
+    try {
+      isValidPassword = await bcrypt.compare(password, user.password_hash);
+    } catch {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Update last login
-    await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+    // Update last login (column may be missing on older DBs — do not fail login)
+    try {
+      await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
+    } catch (e) {
+      if (e && e.code === '42703') {
+        console.warn(
+          'Login: users.last_login column missing. Run: npm run db:migrate-last-login'
+        );
+      } else {
+        throw e;
+      }
+    }
 
     // Generate JWT token
     const token = jwt.sign(
@@ -167,7 +226,13 @@ app.post('/api/auth/login', [
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error:', error.code || error.message, error.message);
+    if (isDatabaseConnectivityError(error)) {
+      return res.status(503).json({
+        error:
+          'Database unavailable. Fix DATABASE_URL in .env (copy the full URI from Neon → Connection details).'
+      });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -216,18 +281,19 @@ app.get('/api/data', async (req, res) => {
     const params = [];
     
     if (search) {
+      // Do not reference search_vector here — many Neon DBs predate that column (42703 errorMissingColumn).
+      // Full-text search can be re-enabled after: npm run db:ensure-food-columns
       query += ` WHERE 
         food_name_lower LIKE $1 
         OR $2 = ANY(regional_names)
         OR $3 = ANY(alternate_names)
-        OR search_vector @@ plainto_tsquery('english', $4)
+        OR LOWER(food_name) LIKE LOWER($4)
         OR LOWER(food_name) LIKE LOWER($5)
-        OR LOWER(food_name) LIKE LOWER($6)
       `;
       const searchTerm = `%${search.toLowerCase()}%`;
       const searchTermWithSpaces = `%${search.replace(/\s+/g, '%')}%`;
       const searchTermWithHyphens = `%${search.replace(/\s+/g, '-')}%`;
-      params.push(searchTerm, search, search, search, searchTermWithSpaces, searchTermWithHyphens);
+      params.push(searchTerm, search, search, searchTermWithSpaces, searchTermWithHyphens);
     }
     
     query += ` ORDER BY popularity_score DESC, created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
@@ -267,7 +333,13 @@ app.get('/api/data', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Search error:', error);
+    console.error('Search error:', error.code || error.message, error.message);
+    if (error.code === '42703') {
+      return res.status(503).json({
+        error:
+          'Database schema out of date. Run: npm run db:ensure-food-columns (from project root), then restart the server.'
+      });
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -321,15 +393,27 @@ app.get('/api/data/stats', async (req, res) => {
 // GET /api/user/profile - Get user profile
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, email, name, phone, created_at, last_login FROM users WHERE id = $1',
-      [req.user.userId]
-    );
-    
+    let result;
+    try {
+      result = await pool.query(
+        'SELECT id, email, name, phone, created_at, last_login FROM users WHERE id = $1',
+        [req.user.userId]
+      );
+    } catch (e) {
+      if (e && e.code === '42703') {
+        result = await pool.query(
+          'SELECT id, email, name, phone, created_at FROM users WHERE id = $1',
+          [req.user.userId]
+        );
+      } else {
+        throw e;
+      }
+    }
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     res.json({ user: result.rows[0] });
   } catch (error) {
     console.error('Profile error:', error);
@@ -464,22 +548,42 @@ app.get('/input-test', (req, res) => {
 });
 
 // ============================================
-// START SERVER
+// START SERVER (tries next port if preferred is busy)
 // ============================================
-app.listen(PORT, () => {
-  console.log('🚀 HOMA FOODS Backend Server Running!');
-  console.log(`📍 Port: ${PORT}`);
-  console.log(`🌐 Frontend: http://localhost:${PORT}`);
-  console.log(`🌐 Health Check: http://localhost:${PORT}/api/health`);
-  console.log(`🔐 Auth Endpoints:`);
-  console.log(`   POST /api/auth/signup`);
-  console.log(`   POST /api/auth/login`);
-  console.log(`   POST /api/auth/logout`);
-  console.log(`🍎 Data Endpoints:`);
-  console.log(`   GET /api/data?search=chicken`);
-  console.log(`   GET /api/data/stats`);
-  console.log(`👤 Protected:`);
-  console.log(`   GET /api/user/profile`);
-});
+function startListening(port) {
+  const server = app.listen(port, () => {
+    if (port !== preferredPort) {
+      console.warn(`⚠️ Port ${preferredPort} was busy; using ${port} instead.`);
+    }
+    console.log('🚀 HOMA FOODS Backend Server Running!');
+    console.log(`📍 Port: ${port}`);
+    console.log(`🌐 Frontend: http://localhost:${port}`);
+    console.log(`🌐 Health Check: http://localhost:${port}/api/health`);
+    console.log(`🔐 Auth Endpoints:`);
+    console.log(`   POST /api/auth/signup`);
+    console.log(`   POST /api/auth/login`);
+    console.log(`   POST /api/auth/logout`);
+    console.log(`🍎 Data Endpoints:`);
+    console.log(`   GET /api/data?search=chicken`);
+    console.log(`   GET /api/data/stats`);
+    console.log(`👤 Protected:`);
+    console.log(`   GET /api/user/profile`);
+  });
+
+  server.on('error', (err) => {
+    if (err && err.code === 'EADDRINUSE' && port < maxPort) {
+      startListening(port + 1);
+      return;
+    }
+    if (err && err.code === 'EADDRINUSE') {
+      console.error(`\n❌ No free port from ${preferredPort} to ${maxPort - 1}.`);
+      console.error('   Close other node servers or set PORT in .env.\n');
+      process.exit(1);
+    }
+    throw err;
+  });
+}
+
+startListening(preferredPort);
 
 module.exports = app;
