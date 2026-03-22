@@ -10,7 +10,8 @@
     "db:test": "node database/test-connection.js",
     "db:init": "node database/init-database.js",
     "db:migrate-last-login": "node database/add-last-login-column.js",
-    "db:ensure-food-columns": "node database/ensure-food-nutrition-columns.js"
+    "db:ensure-food-columns": "node database/ensure-food-nutrition-columns.js",
+    "db:create-food-submissions": "node database/create-food-submissions-table.js"
   },
   "keywords": [
     "neon",
@@ -29,6 +30,7 @@
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.10.1",
     "pg": "^8.11.3",
     "validator": "^13.15.20"
   },

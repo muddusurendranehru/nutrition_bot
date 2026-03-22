@@ -57,6 +57,96 @@ pool.on('error', (err) => {
   console.error('❌ Unexpected database error:', err.message);
 });
 
+/** Community submissions — pending review before merging into food_nutrition */
+async function ensureFoodSubmissionsTable() {
+  const createSql = `
+    CREATE TABLE IF NOT EXISTS food_submissions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      food_name VARCHAR(1000) NOT NULL,
+      calories_approx DECIMAL(10, 2),
+      protein_g DECIMAL(10, 2),
+      carbs_g DECIMAL(10, 2),
+      fat_g DECIMAL(10, 2),
+      fiber_g DECIMAL(10, 2),
+      serving_size VARCHAR(200),
+      region VARCHAR(200),
+      submitted_by VARCHAR(500),
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      reviewed_at TIMESTAMPTZ,
+      review_notes TEXT,
+      CONSTRAINT food_submissions_status_check CHECK (status IN ('pending', 'approved', 'rejected'))
+    )`;
+  try {
+    await pool.query(createSql);
+    await pool.query(
+      'ALTER TABLE food_submissions ADD COLUMN IF NOT EXISTS fiber_g DECIMAL(10, 2)'
+    );
+    await pool.query(
+      'CREATE INDEX IF NOT EXISTS idx_food_submissions_status ON food_submissions(status)'
+    );
+    await pool.query(
+      'CREATE INDEX IF NOT EXISTS idx_food_submissions_created ON food_submissions(created_at DESC)'
+    );
+  } catch (e) {
+    console.error('❌ food_submissions table:', e.message || String(e));
+    throw e;
+  }
+}
+
+async function sendFoodSubmissionEmail(row) {
+  const to = (process.env.SUBMISSION_NOTIFY_EMAIL || 'surendra.muddu@gmail.com').trim();
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) {
+    console.log(
+      '📧 Submission saved; email skipped (set SMTP_HOST, SMTP_USER, SMTP_PASS in .env to notify ' + to + ')'
+    );
+    return;
+  }
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      host,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: { user, pass },
+    });
+    const lines = [
+      'New HOMA FOODS community submission (pending review)',
+      '',
+      `Food: ${row.food_name}`,
+      `Calories (approx): ${row.calories_approx ?? '—'}`,
+      `Protein g: ${row.protein_g ?? '—'}`,
+      `Carbs g: ${row.carbs_g ?? '—'}`,
+      `Fat g: ${row.fat_g ?? '—'}`,
+      `Fiber g: ${row.fiber_g ?? '—'}`,
+      `Serving: ${row.serving_size ?? '—'}`,
+      `Region: ${row.region ?? '—'}`,
+      `Submitted by: ${row.submitted_by || '—'}`,
+      `ID: ${row.id}`,
+      '',
+      'Approve manually into food_nutrition when quality-checked.',
+    ];
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || `"HOMA FOODS" <${user}>`,
+      to,
+      subject: `[HOMA FOODS] Pending food: ${row.food_name}`,
+      text: lines.join('\n'),
+    });
+    console.log('📧 Submission notification sent to', to);
+  } catch (e) {
+    console.error('📧 Email failed (submission still saved):', e.message);
+  }
+}
+
+function parseOptionalFloat(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const n = parseFloat(String(v).replace(/,/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+
 /** True when Neon/Postgres is unreachable or credentials are wrong (login/signup should not look like generic 500). */
 function isDatabaseConnectivityError(err) {
   if (!err) return false;
@@ -247,10 +337,15 @@ app.post('/api/auth/logout', authenticateToken, (req, res) => {
 // DATA ENDPOINTS (HOMA FOODS)
 // ============================================
 
-// GET /api/data - Search HOMA FOODS
-app.get('/api/data', async (req, res) => {
+/** Shared search handler: query param `search`, or path `/api/search/test/:query` */
+async function handleFoodSearch(req, res) {
   try {
-    const { search, limit = 20, offset = 0 } = req.query;
+    const search =
+      req.params && req.params.query != null && req.params.query !== ''
+        ? String(req.params.query)
+        : req.query.search;
+    const limit = req.query.limit != null ? req.query.limit : 20;
+    const offset = req.query.offset != null ? req.query.offset : 0;
     
     let query = `
       SELECT 
@@ -297,7 +392,12 @@ app.get('/api/data', async (req, res) => {
     }
     
     query += ` ORDER BY popularity_score DESC, created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(parseInt(limit), parseInt(offset));
+    const lim = parseInt(String(limit), 10);
+    const off = parseInt(String(offset), 10);
+    params.push(
+      Number.isFinite(lim) && lim > 0 ? lim : 20,
+      Number.isFinite(off) && off >= 0 ? off : 0
+    );
     
     const result = await pool.query(query, params);
     
@@ -342,7 +442,14 @@ app.get('/api/data', async (req, res) => {
     }
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}
+
+// GET /api/data — primary search
+app.get('/api/data', handleFoodSearch);
+
+// Aliases for older / alternate frontends (e.g. Render, cached bundles)
+app.get('/api/search/foods', handleFoodSearch);
+app.get('/api/search/test/:query', handleFoodSearch);
 
 // GET /api/data/stats - Dashboard statistics
 app.get('/api/data/stats', async (req, res) => {
@@ -492,6 +599,83 @@ app.post('/api/bolt-search', async (req, res) => {
 });
 
 // ============================================
+// COMMUNITY: SUBMIT FOOD (pending review)
+// ============================================
+app.post('/api/food-submissions', async (req, res) => {
+  try {
+    const {
+      foodName,
+      calories,
+      protein,
+      carbs,
+      fat,
+      fiber,
+      servingSize,
+      region,
+      submittedBy,
+    } = req.body;
+
+    if (!foodName || !String(foodName).trim()) {
+      return res.status(400).json({ error: 'Food name is required' });
+    }
+
+    const calories_approx = parseOptionalFloat(calories);
+    const protein_g = parseOptionalFloat(protein);
+    const carbs_g = parseOptionalFloat(carbs);
+    const fat_g = parseOptionalFloat(fat);
+    const fiber_g = parseOptionalFloat(fiber);
+
+    const insertSql = `
+      INSERT INTO food_submissions (
+        food_name, calories_approx, protein_g, carbs_g, fat_g, fiber_g,
+        serving_size, region, submitted_by, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending')
+      RETURNING id, food_name, calories_approx, protein_g, carbs_g, fat_g, fiber_g, serving_size, region, submitted_by, status, created_at`;
+
+    const params = [
+      String(foodName).trim(),
+      calories_approx,
+      protein_g,
+      carbs_g,
+      fat_g,
+      fiber_g,
+      servingSize || null,
+      region || null,
+      submittedBy || null,
+    ];
+
+    let result;
+    try {
+      result = await pool.query(insertSql, params);
+    } catch (firstErr) {
+      if (firstErr && (firstErr.code === '42P01' || firstErr.code === '42703')) {
+        await ensureFoodSubmissionsTable();
+        result = await pool.query(insertSql, params);
+      } else {
+        throw firstErr;
+      }
+    }
+
+    const row = result.rows[0];
+    sendFoodSubmissionEmail(row).catch(() => {});
+
+    res.status(201).json({
+      success: true,
+      message: 'Food submitted successfully!',
+      submission: { id: row.id, status: row.status },
+    });
+  } catch (err) {
+    console.error('Food submission error:', err.code, err.message);
+    if (isDatabaseConnectivityError(err)) {
+      return res.status(503).json({ error: 'Database unavailable. Try again shortly.' });
+    }
+    res.status(500).json({
+      error: 'Submission failed: ' + (err.message || 'unknown'),
+    });
+  }
+});
+
+// ============================================
 // HEALTH CHECK
 // ============================================
 app.get('/api/health', async (req, res) => {
@@ -525,6 +709,10 @@ app.use((err, req, res, next) => {
 // ============================================
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
+});
+
+app.get('/submit-food', (req, res) => {
+  res.sendFile(__dirname + '/public/submit-food.html');
 });
 
 app.get('/test', (req, res) => {
@@ -565,9 +753,14 @@ function startListening(port) {
     console.log(`   POST /api/auth/logout`);
     console.log(`🍎 Data Endpoints:`);
     console.log(`   GET /api/data?search=chicken`);
+    console.log(`   GET /api/search/foods?search=chicken (alias)`);
+    console.log(`   GET /api/search/test/chicken (alias)`);
     console.log(`   GET /api/data/stats`);
     console.log(`👤 Protected:`);
     console.log(`   GET /api/user/profile`);
+    console.log(`📝 Community:`);
+    console.log(`   GET /submit-food`);
+    console.log(`   POST /api/food-submissions`);
   });
 
   server.on('error', (err) => {
@@ -584,6 +777,14 @@ function startListening(port) {
   });
 }
 
-startListening(preferredPort);
+(async function bootstrap() {
+  try {
+    await ensureFoodSubmissionsTable();
+    console.log('✅ food_submissions table ready');
+  } catch (e) {
+    console.error('❌ food_submissions bootstrap:', e.message || String(e));
+  }
+  startListening(preferredPort);
+})();
 
 module.exports = app;
